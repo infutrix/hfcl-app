@@ -8,6 +8,10 @@
     "dev:client": "pnpm --filter hfcl-client dev",
     "dev:server": "pnpm --filter hfcl-apis start:dev",
     "start:server": "pnpm --filter hfcl-apis start",
-    "start:client": "pnpm --filter hfcl-client serve"
+    "start:client": "pnpm --filter hfcl-client preview",
+    "start:all": "concurrently \"pnpm --filter hfcl-apis start\" \"pnpm --filter hfcl-client preview\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
