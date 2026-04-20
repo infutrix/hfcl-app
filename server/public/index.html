@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OTDR Control Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg-1: #f6f8f5;
+      --bg-2: #e7efe8;
+      --card: #ffffff;
+      --text: #1f2a24;
+      --muted: #5b6a61;
+      --line: #d4e0d8;
+      --accent: #0d7d5e;
+      --accent-2: #f0a202;
+      --danger: #c83f2f;
+      --shadow: 0 18px 40px rgba(19, 38, 28, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% -10%, #d7f2e6 0, transparent 35%),
+        radial-gradient(circle at 90% -15%, #ffe3b0 0, transparent 35%),
+        linear-gradient(165deg, var(--bg-1), var(--bg-2));
+    }
+
+    .shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 18px 40px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 22px;
+      animation: slideIn 0.7s ease-out;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      width: fit-content;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #124736;
+      background: #d8f3e5;
+      border-radius: 999px;
+      padding: 6px 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 1.05;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+
+    .card {
+      grid-column: span 12;
+      background: color-mix(in srgb, var(--card) 84%, #ecf5ef 16%);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      animation: rise 0.5s ease both;
+    }
+
+    .card:nth-child(2) {
+      animation-delay: 0.08s;
+    }
+
+    .card:nth-child(3) {
+      animation-delay: 0.16s;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 19px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .field {
+      grid-column: span 12;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid #c6d7cc;
+      border-radius: 12px;
+      background: #fbfdfb;
+      color: var(--text);
+      font: inherit;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(13, 125, 94, 0.14);
+    }
+
+    textarea {
+      min-height: 92px;
+      resize: vertical;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #f5fff9;
+    }
+
+    .btn-warning {
+      background: var(--accent-2);
+      color: #332100;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff4f2;
+    }
+
+    .mono-box {
+      border: 1px solid #cad8cf;
+      background: #f5faf7;
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 86px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12.5px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .status-pill {
+      display: inline-block;
+      margin-left: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .state-connected {
+      background: #dbf3e5;
+      color: #125636;
+    }
+
+    .state-connecting {
+      background: #fff0cc;
+      color: #7a4a00;
+    }
+
+    .state-disconnected {
+      background: #ffe2dd;
+      color: #7a271c;
+    }
+
+    .log {
+      max-height: 220px;
+      overflow: auto;
+    }
+
+    .small {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (min-width: 860px) {
+      .card.connection {
+        grid-column: span 6;
+      }
+
+      .card.command {
+        grid-column: span 6;
+      }
+
+      .card.logs {
+        grid-column: span 12;
+      }
+
+      .field.half {
+        grid-column: span 6;
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="shell">
+    <section class="hero">
+      <span class="eyebrow">HFCL Instrument Control</span>
+      <h1>OTDR Control Console</h1>
+      <p class="sub">Connect OTDR, inspect current connection status, and execute Skippy commands from one panel.</p>
+    </section>
+
+    <section class="grid">
+      <article class="card connection">
+        <h2>
+          Connection
+          <span id="statePill" class="status-pill state-disconnected">disconnected</span>
+        </h2>
+        <div class="row">
+          <div class="field half">
+            <label for="host">Host</label>
+            <input id="host" value="192.168.1.38" />
+          </div>
+          <div class="field half">
+            <label for="port">Port</label>
+            <input id="port" type="number" min="1" max="65535" value="2288" />
+          </div>
+          <div class="field half">
+            <label for="connectTimeoutMs">Connect Timeout (ms)</label>
+            <input id="connectTimeoutMs" type="number" min="1" max="120000" value="5000" />
+          </div>
+          <div class="field half">
+            <label for="commandTimeoutMs">Command Timeout (ms)</label>
+            <input id="commandTimeoutMs" type="number" min="1" max="120000" value="5000" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="connectBtn" class="btn-primary">Connect</button>
+          <button id="disconnectBtn" class="btn-danger">Disconnect</button>
+          <button id="statusBtn" class="btn-warning">Get Current Status</button>
+        </div>
+
+        <p class="small">Status response</p>
+        <div id="statusBox" class="mono-box">No status fetched yet.</div>
+      </article>
+
+      <article class="card command">
+        <h2>Skippy Command</h2>
+        <div class="row">
+          <div class="field">
+            <label for="command">Command</label>
+            <textarea id="command" placeholder="source:wavelength 1310; *wai; initiate; *wai; trace:mdloss?"></textarea>
+          </div>
+          <div class="field">
+            <label for="singleCommandTimeout">Per Command Timeout (ms, optional)</label>
+            <input id="singleCommandTimeout" type="number" min="1" max="120000" placeholder="5000" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="executeBtn" class="btn-primary">Execute Skippy Command</button>
+        </div>
+
+        <p class="small">Command response</p>
+        <div id="commandBox" class="mono-box">No command executed yet.</div>
+      </article>
+
+      <article class="card logs">
+        <h2>Activity Log</h2>
+        <div id="logBox" class="mono-box log"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const statePill = document.getElementById('statePill');
+    const statusBox = document.getElementById('statusBox');
+    const commandBox = document.getElementById('commandBox');
+    const logBox = document.getElementById('logBox');
+
+    const controls = {
+      host: document.getElementById('host'),
+      port: document.getElementById('port'),
+      connectTimeoutMs: document.getElementById('connectTimeoutMs'),
+      commandTimeoutMs: document.getElementById('commandTimeoutMs'),
+      command: document.getElementById('command'),
+      singleCommandTimeout: document.getElementById('singleCommandTimeout'),
+    };
+
+    const buttons = {
+      connect: document.getElementById('connectBtn'),
+      disconnect: document.getElementById('disconnectBtn'),
+      status: document.getElementById('statusBtn'),
+      execute: document.getElementById('executeBtn'),
+    };
+
+    function now() {
+      return new Date().toLocaleTimeString();
+    }
+
+    function log(message) {
+      const line = `[${now()}] ${message}`;
+      if (!logBox.textContent) {
+        logBox.textContent = line;
+      } else {
+        logBox.textContent = `${line}\n${logBox.textContent}`;
+      }
+    }
+
+    function setState(state) {
+      statePill.textContent = state || 'unknown';
+      statePill.className = `status-pill state-${state || 'disconnected'}`;
+    }
+
+    function toIntOrUndefined(value) {
+      if (!value) {
+        return undefined;
+      }
+
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
+      });
+
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+
+      if (!response.ok) {
+        const reason = data?.message || data?.error || text || 'Request failed';
+        throw new Error(Array.isArray(reason) ? reason.join('; ') : String(reason));
+      }
+
+      return data;
+    }
+
+    function connectionPayload(type) {
+      const payload = { connectionType: type };
+
+      if (type === 'connect') {
+        payload.host = controls.host.value.trim();
+        payload.port = toIntOrUndefined(controls.port.value);
+        payload.connectTimeoutMs = toIntOrUndefined(controls.connectTimeoutMs.value);
+        payload.commandTimeoutMs = toIntOrUndefined(controls.commandTimeoutMs.value);
+      }
+
+      return payload;
+    }
+
+    async function loadStatus() {
+      const data = await api('/otdr/connection/status');
+      statusBox.textContent = JSON.stringify(data, null, 2);
+      setState(data.state);
+      return data;
+    }
+
+    async function withBusy(button, action, description) {
+      const previous = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Working...';
+
+      try {
+        await action();
+      } catch (error) {
+        log(`${description} failed: ${error.message}`);
+        throw error;
+      } finally {
+        button.disabled = false;
+        button.textContent = previous;
+      }
+    }
+
+    buttons.connect.addEventListener('click', async () => {
+      await withBusy(buttons.connect, async () => {
+        const payload = connectionPayload('connect');
+        const data = await api('/otdr/connection', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        statusBox.textContent = JSON.stringify(data, null, 2);
+        if (data?.status?.state) {
+          setState(data.status.state);
+        }
+        log('Connected to OTDR.');
+      }, 'Connect');
+    });
+
+    buttons.disconnect.addEventListener('click', async () => {
+      await withBusy(buttons.disconnect, async () => {
+        const data = await api('/otdr/connection', {
+          method: 'POST',
+          body: JSON.stringify(connectionPayload('disconnect')),
+        });
+        statusBox.textContent = JSON.stringify(data, null, 2);
+        if (data?.status?.state) {
+          setState(data.status.state);
+        }
+        log('Disconnected from OTDR.');
+      }, 'Disconnect');
+    });
+
+    buttons.status.addEventListener('click', async () => {
+      await withBusy(buttons.status, async () => {
+        const data = await loadStatus();
+        log(`Status fetched: ${data.state}`);
+      }, 'Status fetch');
+    });
+
+    buttons.execute.addEventListener('click', async () => {
+      await withBusy(buttons.execute, async () => {
+        const command = controls.command.value.trim();
+        if (!command) {
+          throw new Error('Command is required.');
+        }
+
+        const payload = { command };
+        const timeout = toIntOrUndefined(controls.singleCommandTimeout.value);
+        if (timeout) {
+          payload.timeoutMs = timeout;
+        }
+
+        const data = await api('/otdr/commands/skippy', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+        commandBox.textContent = JSON.stringify(data, null, 2);
+        log('Skippy command executed.');
+      }, 'Command execution');
+    });
+
+    loadStatus()
+      .then((data) => log(`Initial status: ${data.state}`))
+      .catch((error) => log(`Initial status fetch failed: ${error.message}`));
+  </script>
+</body>
+
+</html>
