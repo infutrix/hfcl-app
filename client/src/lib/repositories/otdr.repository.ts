@@ -30,13 +30,6 @@ export default class Otdr {
   static async runSkippyMetricsWithImage(
     data: RunSkippyMetricsWithImageInput
   ): Promise<SkippyMetricsWithImageResponse> {
-    const formData = new FormData()
-    formData.append("image", data.image, data.fileName ?? "capture.png")
-
-    if (typeof data.timeoutMs === "number") {
-      formData.append("timeoutMs", String(data.timeoutMs))
-    }
-
-    return await api.post("/otdr/commands/skippy/metrics-with-image", formData)
+    return await api.post("/otdr/commands/skippy/metrics-with-image", data)
   }
 }

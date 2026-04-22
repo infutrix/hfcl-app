@@ -31,9 +31,7 @@ export type SkippyCommandResponse = {
 }
 
 export type RunSkippyMetricsWithImageInput = {
-  image: Blob
   timeoutMs?: number
-  fileName?: string
 }
 
 export type IbrColorPrediction = {

@@ -57,6 +57,9 @@ export class OtdrService implements OnModuleDestroy {
     process.env.IBR_AI_PREDICT_URL ??
     'http://localhost:8000/api/v1/predict/ibr';
   private readonly iBrPredictTimeoutMs = 20000;
+  private readonly captureImageUrl =
+    process.env.CAPTURE_IMAGE_URL ?? 'http://localhost:5001/capture';
+  private readonly captureImageTimeoutMs = 10000;
 
   private socket: Socket | null = null;
   private state: ConnectionState = 'disconnected';
@@ -106,17 +109,8 @@ export class OtdrService implements OnModuleDestroy {
     };
   }
 
-  async runSkippyMetricsWithImage(
-    image: UploadedImageFile,
-    timeoutMs?: number,
-  ) {
-    if (!image.buffer || image.size <= 0) {
-      throw new BadRequestException('Uploaded image is empty.');
-    }
-
-    if (!image.mimetype?.startsWith('image/')) {
-      throw new BadRequestException('Only image uploads are supported.');
-    }
+  async runSkippyMetricsWithImage(timeoutMs?: number) {
+    const image = await this.fetchCapturedImage();
 
     await mkdir(this.runStorageDir, { recursive: true });
 
@@ -223,6 +217,65 @@ export class OtdrService implements OnModuleDestroy {
         image: join('public', 'otdr-runs', imageFileName),
         record: join('public', 'otdr-runs', recordFileName),
       },
+    };
+  }
+
+  private async fetchCapturedImage(): Promise<UploadedImageFile> {
+    const abortController = new AbortController();
+    const timeout = setTimeout(() => {
+      abortController.abort();
+    }, this.captureImageTimeoutMs);
+
+    let response: Response;
+
+    try {
+      response = await fetch(this.captureImageUrl, {
+        method: 'GET',
+        signal: abortController.signal,
+      });
+    } catch (error) {
+      const reason =
+        error instanceof Error ? error.message : 'Unknown network error';
+
+      throw new ServiceUnavailableException({
+        message: 'Unable to fetch image from capture server.',
+        reason,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+
+      throw new ServiceUnavailableException({
+        message: 'Capture server returned a non-success response.',
+        statusCode: response.status,
+        reason: body || response.statusText,
+      });
+    }
+
+    const contentType = response.headers.get('content-type') ?? '';
+    const mimetype = contentType.split(';')[0].trim().toLowerCase();
+
+    if (!mimetype.startsWith('image/')) {
+      throw new BadRequestException(
+        'Capture server response is not an image payload.',
+      );
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    if (buffer.byteLength <= 0) {
+      throw new BadRequestException('Captured image is empty.');
+    }
+
+    return {
+      originalname: `capture${this.resolveImageExtension('', mimetype)}`,
+      mimetype,
+      size: buffer.byteLength,
+      buffer,
     };
   }
 
