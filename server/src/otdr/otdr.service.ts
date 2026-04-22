@@ -28,6 +28,21 @@ interface UploadedImageFile {
   buffer: Buffer;
 }
 
+export interface IbrPredictResponse {
+  fiber?: {
+    color?: string;
+    confidence?: number;
+  };
+  ribbon?: {
+    markings_score?: number;
+  };
+  strand?: {
+    color?: string;
+    confidence?: number;
+  };
+  status?: string;
+}
+
 @Injectable()
 export class OtdrService implements OnModuleDestroy {
   private readonly lossAt1310Command =
@@ -38,15 +53,10 @@ export class OtdrService implements OnModuleDestroy {
   private readonly bCursorCommand = 'sense:bcursor?';
   private readonly aCursorCommand = 'sense:acursor?';
   private readonly runStorageDir = join(process.cwd(), 'public', 'otdr-runs');
-  private readonly fallbackColors = [
-    '#E76F51',
-    '#F4A261',
-    '#2A9D8F',
-    '#264653',
-    '#E9C46A',
-    '#4F772D',
-    '#006D77',
-  ];
+  private readonly iBrPredictUrl =
+    process.env.IBR_AI_PREDICT_URL ??
+    'http://localhost:8000/api/v1/predict/ibr';
+  private readonly iBrPredictTimeoutMs = 20000;
 
   private socket: Socket | null = null;
   private state: ConnectionState = 'disconnected';
@@ -175,8 +185,7 @@ export class OtdrService implements OnModuleDestroy {
     });
 
     const otdrResponse = metricsResult.responses.loss;
-
-    const color = this.getRandomColor();
+    const colorPrediction = await this.predictIbrColor(image);
     const recordFileName = `${runId}.json`;
     const recordFilePath = join(this.runStorageDir, recordFileName);
 
@@ -188,7 +197,7 @@ export class OtdrService implements OnModuleDestroy {
       metrics: metricsResult.metrics,
       responses: metricsResult.responses,
       commands: metricsResult.commands,
-      color,
+      colorPrediction,
       createdAt: new Date().toISOString(),
       image: {
         fileName: imageFileName,
@@ -209,7 +218,7 @@ export class OtdrService implements OnModuleDestroy {
       metrics: metricsResult.metrics,
       responses: metricsResult.responses,
       commands: metricsResult.commands,
-      color,
+      colorPrediction,
       savedFiles: {
         image: join('public', 'otdr-runs', imageFileName),
         record: join('public', 'otdr-runs', recordFileName),
@@ -452,9 +461,64 @@ export class OtdrService implements OnModuleDestroy {
     return byMimeType[mimetype] ?? '.img';
   }
 
-  private getRandomColor(): string {
-    const index = Math.floor(Math.random() * this.fallbackColors.length);
-    return this.fallbackColors[index];
+  private async predictIbrColor(
+    image: UploadedImageFile,
+  ): Promise<IbrPredictResponse> {
+    const formData = new FormData();
+    const fileBytes = Uint8Array.from(image.buffer);
+    const blob = new Blob([fileBytes], {
+      type: image.mimetype || 'application/octet-stream',
+    });
+
+    formData.append('file', blob, image.originalname || 'capture.jpg');
+
+    const abortController = new AbortController();
+    const timeout = setTimeout(() => {
+      abortController.abort();
+    }, this.iBrPredictTimeoutMs);
+
+    let response: Response;
+
+    try {
+      response = await fetch(this.iBrPredictUrl, {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
+        },
+        body: formData,
+        signal: abortController.signal,
+      });
+    } catch (error) {
+      const reason =
+        error instanceof Error ? error.message : 'Unknown network error';
+
+      throw new ServiceUnavailableException({
+        message: 'Unable to fetch color prediction from AI server.',
+        reason,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!response.ok) {
+      const body = await response.text();
+
+      throw new ServiceUnavailableException({
+        message: 'AI server returned a non-success response.',
+        statusCode: response.status,
+        reason: body || response.statusText,
+      });
+    }
+
+    const data = (await response.json()) as IbrPredictResponse;
+
+    if (!data || typeof data !== 'object') {
+      throw new InternalServerErrorException(
+        'Invalid prediction payload returned by AI server.',
+      );
+    }
+
+    return data;
   }
 
   private sendCommand(command: string, timeoutMs?: number): Promise<string> {

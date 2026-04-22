@@ -36,6 +36,21 @@ export type RunSkippyMetricsWithImageInput = {
   fileName?: string
 }
 
+export type IbrColorPrediction = {
+  fiber?: {
+    color?: string
+    confidence?: number
+  }
+  ribbon?: {
+    markings_score?: number
+  }
+  strand?: {
+    color?: string
+    confidence?: number
+  }
+  status?: string
+}
+
 export type SkippyMetricsWithImageResponse = {
   message: string
   runId: string
@@ -66,7 +81,7 @@ export type SkippyMetricsWithImageResponse = {
     aCursor: string
     ior: string
   }
-  color: string
+  colorPrediction: IbrColorPrediction
   savedFiles: {
     image: string
     record: string
