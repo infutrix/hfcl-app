@@ -24,7 +24,7 @@ export default function UserDashboard() {
   } = useGetOtdrConnectionStatus()
 
   const handleStartTesting = async () => {
-    await runSkippyMetricsWithImage.mutateAsync({})
+    await runSkippyMetricsWithImage.mutateAsync({ timeoutMs: 10000 })
   }
 
   const handleConnect = async () => {
