@@ -56,7 +56,7 @@ export class OtdrService implements OnModuleDestroy {
   private readonly iBrPredictUrl =
     process.env.IBR_AI_PREDICT_URL ??
     'http://localhost:8000/api/v1/predict/ibr';
-  private readonly iBrPredictTimeoutMs = 20000;
+  private readonly iBrPredictTimeoutMs = 200000;
   private readonly captureImageUrl =
     process.env.CAPTURE_IMAGE_URL ?? 'http://localhost:5001/capture';
   private readonly captureImageTimeoutMs = 10000;
@@ -522,6 +522,8 @@ export class OtdrService implements OnModuleDestroy {
     const blob = new Blob([fileBytes], {
       type: image.mimetype || 'application/octet-stream',
     });
+    console.log('Working');
+    console.log('image', image);
 
     formData.append('file', blob, image.originalname || 'capture.jpg');
 
