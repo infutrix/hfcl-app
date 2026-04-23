@@ -54,8 +54,7 @@ export class OtdrService implements OnModuleDestroy {
   private readonly aCursorCommand = 'sense:acursor?';
   private readonly runStorageDir = join(process.cwd(), 'public', 'otdr-runs');
   private readonly iBrPredictUrl =
-    process.env.IBR_AI_PREDICT_URL ??
-    'http://localhost:8000/api/v1/predict/ibr';
+    'https://0r6gc67m-8000.inc1.devtunnels.ms/api/v1/predict/ibr';
   private readonly iBrPredictTimeoutMs = 200000;
   private readonly captureImageUrl =
     process.env.CAPTURE_IMAGE_URL ?? 'http://localhost:5001/capture';
