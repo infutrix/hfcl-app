@@ -6,14 +6,6 @@ export default class Auth {
     return await api.post("/auth/login", data)
   }
 
-  static async refresh() {
-    await api.post("/auth/refresh")
-  }
-
-  static async logout() {
-    return await api.post("/auth/logout")
-  }
-
   static async me(): Promise<MeResponse> {
     return await api.get("/auth/me")
   }

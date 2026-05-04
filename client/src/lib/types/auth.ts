@@ -1,20 +1,43 @@
 import { z } from "zod"
-import type { UserRoles } from "./common"
+import type { EnitityStatus } from "./common"
 
 export const LoginSchema = z.object({
-  username: z.string().min(1, "Username is required."),
+  email: z.email("Invalid email address."),
   password: z.string().min(1, "Password is required."),
 })
 
 export type LoginInput = z.infer<typeof LoginSchema>
 
 export type LoginResponse = {
-  role: UserRoles
+  access_token: string
+  user: {
+    id: number
+    first_name: string
+    last_name: string
+    email: string
+    role_id: number
+    status: EnitityStatus
+    created_at: string
+    modified_at: string
+    role_name: string
+    role_identifier: string
+  }
 }
 
 export type MeResponse = {
-  id: string
-  name: string
-  username: string
-  avatarUrl?: string
+  id: number
+  first_name: string
+  last_name: string
+  email: string
+  role_id: number
+  status: EnitityStatus
+  created_at: string
+  modified_at: string
+  userRole: {
+    id: number
+    role: string
+    identifier: string
+    created_at: string
+    modified_at: string
+  }
 }

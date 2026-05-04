@@ -9,30 +9,8 @@ export const useLogin = () => {
   const navigate = useNavigate()
   return useMutation<LoginResponse, ApiErrorResponse, LoginInput>({
     mutationFn: Auth.login,
-    onSuccess: (res) => {
-      switch (res.role) {
-        case "ADMIN":
-          navigate("/dashboard", { replace: true })
-          break
-        case "USER":
-          navigate("/app", { replace: true })
-          break
-        default:
-          navigate("/", { replace: true })
-          break
-      }
-    },
-    onError: (error) => {
-      Notify.error(error.message)
-    },
-  })
-}
-
-export const useLogout = () => {
-  return useMutation<unknown, ApiErrorResponse>({
-    mutationFn: Auth.logout,
     onSuccess: () => {
-      window.location.replace("/login")
+      navigate("/dashboard", { replace: true })
     },
     onError: (error) => {
       Notify.error(error.message)

@@ -18,5 +18,4 @@ export type PaginatedResponse<T = unknown> = [
 ]
 
 export const UserRoles = ["ADMIN", "USER"] as const
-export type UserRoles = (typeof UserRoles)[number]
-export type EnitityStatus = "ACTIVE" | "INACTIVE"
+export type EnitityStatus = "active" | "inactive"
