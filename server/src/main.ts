@@ -6,7 +6,7 @@ import * as express from 'express';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: ['http://localhost:4173'],
+    origin: ['http://localhost:3000'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
@@ -19,6 +19,6 @@ async function bootstrap() {
       transform: true,
     }),
   );
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3001);
 }
 void bootstrap();

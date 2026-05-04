@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const api = axios.create({
-  baseURL: "http://localhost:3000",
+  baseURL: "http://localhost:3001",
   withCredentials: true,
 })
 
@@ -18,12 +18,6 @@ api.interceptors.request.use((config) => {
 
   config.headers = config.headers ?? {}
   config.headers["Content-Type"] ??= "application/json"
-  try {
-    const token = localStorage.getItem("hfcl_access_token")
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`
-    }
-  } catch {}
   return config
 }, Promise.reject)
 
@@ -33,22 +27,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response.data,
 
-  (error) => {
-    const originalRequest = error.config
-    if (
-      error.response?.status === 401 &&
-      originalRequest &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true
-      try {
-        // clear locally stored token and force login
-        localStorage.removeItem("hfcl_access_token")
-      } catch {}
-      window.location.href = "/login"
-      return Promise.reject(error.response?.data ?? error)
-    }
-
+  async (error) => {
     return Promise.reject(error.response?.data ?? error)
   }
 )
