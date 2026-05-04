@@ -6,7 +6,13 @@ export const LoginSchema = z.object({
   password: z.string().min(1, "Password is required."),
 })
 
+export const LoginFormSchema = LoginSchema.extend({
+  showPassword: z.boolean(),
+  keepSignedIn: z.boolean(),
+})
+
 export type LoginInput = z.infer<typeof LoginSchema>
+export type LoginFormInput = z.infer<typeof LoginFormSchema>
 
 export type LoginResponse = {
   access_token: string

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
+import { LoginFormSchema, type LoginFormInput } from "@/lib/types/auth"
 import {
   Mail,
   Lock,
@@ -12,29 +13,32 @@ import {
   BarChart2,
   Activity,
 } from "lucide-react"
-import { useState } from "react"
 import { useForm, Controller } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useLogin } from "@/hooks/use-auth"
 
-type FormValues = {
-  email: string
-  password: string
-  keepSignedIn?: boolean
-}
-
 export default function Login() {
-  const [showPassword, setShowPassword] = useState(false)
   const login = useLogin()
 
   const {
     control,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
-  } = useForm<FormValues>({
-    defaultValues: { email: "", password: "", keepSignedIn: true },
+  } = useForm<LoginFormInput>({
+    resolver: zodResolver(LoginFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      keepSignedIn: true,
+      showPassword: false,
+    },
   })
 
-  const onSubmit = (values: FormValues) => {
+  const showPassword = watch("showPassword")
+
+  const onSubmit = (values: LoginFormInput) => {
     login.mutate({ email: values.email, password: values.password })
   }
 
@@ -115,13 +119,6 @@ export default function Login() {
                   <Controller
                     name="email"
                     control={control}
-                    rules={{
-                      required: "Email is required",
-                      pattern: {
-                        value: /\S+@\S+\.\S+/,
-                        message: "Invalid email",
-                      },
-                    }}
                     render={({ field }) => (
                       <Input
                         id="email"
@@ -168,7 +165,6 @@ export default function Login() {
                   <Controller
                     name="password"
                     control={control}
-                    rules={{ required: "Password is required" }}
                     render={({ field }) => (
                       <Input
                         id="password"
@@ -186,7 +182,13 @@ export default function Login() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword((p) => !p)}
+                    onClick={() =>
+                      setValue("showPassword", !showPassword, {
+                        shouldDirty: false,
+                        shouldTouch: false,
+                        shouldValidate: false,
+                      })
+                    }
                     className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     aria-label={
                       showPassword ? "Hide password" : "Show password"
