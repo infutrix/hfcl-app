@@ -3,6 +3,7 @@ import { Toaster } from "./components/ui/sonner"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import NotFound from "./app/NotFound"
 import UserDashboard from "./app/UserDashboard"
+import Login from "./app/Login"
 
 const queryClient = new QueryClient()
 
@@ -13,8 +14,8 @@ export function App() {
       <BrowserRouter>
         <Routes>
           {/* <Route path="/" element={<Login />} /> */}
-          <Route path="/" element={<UserDashboard />} />
-          <Route path="/app" element={<UserDashboard />} />
+          <Route path="/" element={<Login />} />
+          <Route path="/dashboard" element={<UserDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

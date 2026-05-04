@@ -1,5 +1,4 @@
 import axios from "axios"
-import Auth from "../repositories/auth.repository"
 
 const apiCms = axios.create({
   baseURL: "http://72.60.97.5:2219",
@@ -19,6 +18,12 @@ apiCms.interceptors.request.use((config) => {
 
   config.headers = config.headers ?? {}
   config.headers["Content-Type"] ??= "application/json"
+  try {
+    const token = localStorage.getItem("hfcl_access_token")
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`
+    }
+  } catch {}
   return config
 }, Promise.reject)
 
@@ -28,23 +33,19 @@ apiCms.interceptors.request.use((config) => {
 apiCms.interceptors.response.use(
   (response) => response.data,
 
-  async (error) => {
+  (error) => {
     const originalRequest = error.config
     if (
       error.response?.status === 401 &&
-      error.response?.data?.error === "UNAUTHORIZED" &&
       originalRequest &&
       !originalRequest._retry
     ) {
       originalRequest._retry = true
-
       try {
-        await Auth.refresh()
-        return apiCms(originalRequest)
-      } catch (refreshError) {
-        window.location.href = "/login"
-        return Promise.reject(refreshError)
-      }
+        localStorage.removeItem("hfcl_access_token")
+      } catch {}
+      window.location.href = "/login"
+      return Promise.reject(error.response?.data ?? error)
     }
 
     return Promise.reject(error.response?.data ?? error)

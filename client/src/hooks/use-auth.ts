@@ -4,12 +4,17 @@ import Notify from "@/lib/notification"
 import type { LoginResponse, LoginInput, MeResponse } from "@/lib/types/auth"
 import type { ApiErrorResponse } from "@/lib/types/common"
 import { useNavigate } from "react-router-dom"
+import useAuthStore from "@/lib/stores/useAuthStore"
 
 export const useLogin = () => {
   const navigate = useNavigate()
   return useMutation<LoginResponse, ApiErrorResponse, LoginInput>({
     mutationFn: Auth.login,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      try {
+        // persist token
+        useAuthStore.getState().setToken(data.access_token)
+      } catch {}
       navigate("/dashboard", { replace: true })
     },
     onError: (error) => {
