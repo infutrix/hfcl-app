@@ -28,7 +28,7 @@ export default function QaDashboard() {
   const [cableProfile, setCableProfile] = useState("")
   const [colorCoding, setColorCoding] = useState("")
   return (
-    <div className="h-screen w-screen p-2">
+    <div className="p-2">
       <div className="grid grid-cols-12 gap-2">
         <div className="col-span-4 space-y-2">
           <Card className="relative overflow-visible border border-muted-foreground p-4 ring-0">
@@ -428,7 +428,7 @@ export default function QaDashboard() {
           </Card>
         </div>
         <div className="col-span-3 space-y-2">
-          <Card className="relative overflow-visible border border-muted-foreground p-4 ring-0">
+          <Card className="relative h-full overflow-visible border border-muted-foreground p-4 ring-0">
             <h2 className="absolute -top-2 bg-background text-sm font-semibold">
               Physical Parameters
             </h2>
@@ -502,45 +502,43 @@ export default function QaDashboard() {
                 </div>
               </div>
               <div className="grid grid-cols-10 items-center gap-2">
-                <label className="col-span-3 font-medium text-foreground">
-                  WPT
-                </label>
-                <div className="col-span-7">
-                  <Select defaultValue="OK">
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="OK">OK</SelectItem>
-                        <SelectItem value="NOT OK">NOT OK</SelectItem>
-                        <SelectItem value="N/A">N/A</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                <div className="col-span-5 grid grid-cols-5 items-center gap-2">
+                  <label className="col-span-3 font-medium text-foreground">
+                    WPT
+                  </label>
+                  <div className="col-span-2">
+                    <Select defaultValue="OK">
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="OK">OK</SelectItem>
+                          <SelectItem value="NOT OK">NOT OK</SelectItem>
+                          <SelectItem value="N/A">N/A</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              </div>
-              <div className="grid grid-cols-10 items-center gap-2">
-                <label className="col-span-3 font-medium text-foreground">
-                  Drip
-                </label>
-                <div className="col-span-7">
-                  <Select
-                    value={sfgStage}
-                    defaultValue="OK"
-                    onValueChange={setSfgStage}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="OK">OK</SelectItem>
-                        <SelectItem value="NOT OK">NOT OK</SelectItem>
-                        <SelectItem value="N/A">N/A</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                <div className="col-span-5 grid grid-cols-5 items-center gap-2">
+                  <label className="col-span-3 font-medium text-foreground">
+                    Drip
+                  </label>
+                  <div className="col-span-2">
+                    <Select defaultValue="OK">
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="OK">OK</SelectItem>
+                          <SelectItem value="NOT OK">NOT OK</SelectItem>
+                          <SelectItem value="N/A">N/A</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               <div className="grid grid-cols-10 items-center gap-2">
@@ -652,24 +650,6 @@ export default function QaDashboard() {
               </div>
               <div className="grid grid-cols-10 items-center gap-2">
                 <label className="col-span-3 font-medium text-foreground">
-                  Status
-                </label>
-                <div className="col-span-7">
-                  <Select defaultValue="PASS">
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="PASS">PASS</SelectItem>
-                        <SelectItem value="FAIL">PENDING</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-10 items-center gap-2">
-                <label className="col-span-3 font-medium text-foreground">
                   Ribbon Rub Test
                 </label>
                 <div className="col-span-7">
@@ -720,6 +700,24 @@ export default function QaDashboard() {
                         <SelectItem value="OK">OK</SelectItem>
                         <SelectItem value="NOT OK">NOT OK</SelectItem>
                         <SelectItem value="N/A">N/A</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-10 items-center gap-2">
+                <label className="col-span-3 font-medium text-foreground">
+                  Status
+                </label>
+                <div className="col-span-7">
+                  <Select defaultValue="PASS">
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="PASS">PASS</SelectItem>
+                        <SelectItem value="FAIL">PENDING</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
