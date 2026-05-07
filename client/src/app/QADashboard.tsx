@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Check, Printer, Save } from "lucide-react"
+import { Check, EthernetPort, MonitorPlay, Printer, Save } from "lucide-react"
 import { useState } from "react"
 
 export default function QaDashboard() {
@@ -81,7 +81,7 @@ export default function QaDashboard() {
                 variant="destructive"
                 className="col-span-3 h-8 w-full text-xs"
               >
-                Disconnect
+                Disconnect <EthernetPort />
               </Button>
             </div>
           </div>
@@ -292,7 +292,7 @@ export default function QaDashboard() {
               <Input className="col-span-2" />
               <Input className="col-span-2" />
               <Input className="col-span-2" />
-              <Button className="col-span-2 h-8 w-full text-xs">Test</Button>
+              <Button className="col-span-2 h-8 w-full text-xs">Test <MonitorPlay /></Button>
             </div>
           </div>
         </Card>
@@ -303,7 +303,7 @@ export default function QaDashboard() {
             OTDR Losses Testing
           </h2>
           <div className="space-y-2">
-            <Button className="h-8 w-full text-xs">Test</Button>
+            <Button className="h-8 w-full text-xs">Test <MonitorPlay /></Button>
             <div className="max-h-150 overflow-x-auto border border-muted-foreground ring-0">
               <Table className="border text-xs">
                 <TableHeader>
