@@ -732,6 +732,7 @@ export default function QaDashboard() {
                 </Button>
                 <Button
                   variant="secondary"
+                  disabled
                   className="col-span-1 h-8 w-full text-xs"
                 >
                   Print Sticker <Printer />
