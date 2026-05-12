@@ -21,8 +21,11 @@ import {
 } from "@/components/ui/select"
 import { Check, EthernetPort, MonitorPlay, Printer, Save } from "lucide-react"
 import { useState } from "react"
+import { useGetAllOtdrDevices } from "@/hooks/use-otdr"
 
 export default function QaDashboard() {
+  const { data: otdrDevices, isPending: isOtdrDevicesPending } =
+    useGetAllOtdrDevices()
   const [otdr, setOtdr] = useState("")
   const [sfgStage, setSfgStage] = useState("")
   const [cableProfile, setCableProfile] = useState("")
@@ -44,18 +47,22 @@ export default function QaDashboard() {
               </label>
               <div className="col-span-8">
                 <Select value={otdr} onValueChange={setOtdr}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    disabled={isOtdrDevicesPending}
+                    className="w-full"
+                  >
                     <SelectValue placeholder="Select OTDR" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>OTDR Devices</SelectLabel>
-                      <SelectItem value="OTDR-01-GN6C60S6-F905">
-                        OTDR-01-GN6C60S6-F905
-                      </SelectItem>
-                      <SelectItem value="OTDR-01-GN6C60S6-F906">
-                        OTDR-01-GN6C60S6-F906
-                      </SelectItem>
+                      <SelectLabel>
+                        {isOtdrDevicesPending ? "Loading..." : "OTDR Devices"}
+                      </SelectLabel>
+                      {otdrDevices?.map((device) => (
+                        <SelectItem key={device.id} value={device.device_id}>
+                          {device.device_name}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -292,7 +299,9 @@ export default function QaDashboard() {
               <Input className="col-span-2" />
               <Input className="col-span-2" />
               <Input className="col-span-2" />
-              <Button className="col-span-2 h-8 w-full text-xs">Test <MonitorPlay /></Button>
+              <Button className="col-span-2 h-8 w-full text-xs">
+                Test <MonitorPlay />
+              </Button>
             </div>
           </div>
         </Card>
@@ -303,7 +312,9 @@ export default function QaDashboard() {
             OTDR Losses Testing
           </h2>
           <div className="space-y-2">
-            <Button className="h-8 w-full text-xs">Test <MonitorPlay /></Button>
+            <Button className="h-8 w-full text-xs">
+              Test <MonitorPlay />
+            </Button>
             <div className="max-h-150 overflow-x-auto border border-muted-foreground ring-0">
               <Table className="border text-xs">
                 <TableHeader>

@@ -1,4 +1,5 @@
 import api from "../api/http-client"
+import apiCms from "../api/http-client-cms"
 import type {
   CreateOtdrConnectionInput,
   OtdrConnesctionResponse,
@@ -6,6 +7,7 @@ import type {
   SendSkippyCommandInput,
   SkippyMetricsWithImageResponse,
   SkippyCommandResponse,
+  OtdrDevice,
 } from "../types/otdr"
 
 export default class Otdr {
@@ -31,5 +33,9 @@ export default class Otdr {
     data: RunSkippyMetricsWithImageInput
   ): Promise<SkippyMetricsWithImageResponse> {
     return await api.post("/otdr/commands/skippy/metrics-with-image", data)
+  }
+
+  static async getAllOtdrDevices(): Promise<OtdrDevice[]> {
+    return await apiCms.get("/otdr-devices")
   }
 }

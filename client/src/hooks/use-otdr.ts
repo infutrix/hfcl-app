@@ -8,6 +8,7 @@ import type {
   SendSkippyCommandInput,
   SkippyMetricsWithImageResponse,
   SkippyCommandResponse,
+  OtdrDevice,
 } from "@/lib/types/otdr"
 import Otdr from "@/lib/repositories/otdr.repository"
 
@@ -61,6 +62,15 @@ export const useGetOtdrConnectionStatus = () => {
   return useQuery<OtdrConnesctionResponse["status"], ApiErrorResponse>({
     queryFn: Otdr.getConnectionStatus,
     queryKey: ["otdr-connection-status"],
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useGetAllOtdrDevices = () => {
+  return useQuery<OtdrDevice[], ApiErrorResponse>({
+    queryFn: Otdr.getAllOtdrDevices,
+    queryKey: ["otdr-devices"],
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   })

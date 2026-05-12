@@ -85,3 +85,26 @@ export type SkippyMetricsWithImageResponse = {
     record: string
   }
 }
+
+export type OtdrDevice = {
+  id: number
+  device_name: string
+  device_id: string
+  ip_address: string
+  port: number
+  manufacturer: string
+  model: string
+  serial_number: string
+  plant_id: number
+  status: boolean
+  created_at: string
+  modified_at: string
+  plant: {
+    id: number
+    plant_name: string
+    location: string
+    status: boolean
+    created_at: string
+    modified_at: string
+  }
+}

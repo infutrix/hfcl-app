@@ -37,6 +37,7 @@ apiCms.interceptors.response.use(
     const originalRequest = error.config
     if (
       error.response?.status === 401 &&
+      error.response?.data?.message === "Unauthorized" &&
       originalRequest &&
       !originalRequest._retry
     ) {
@@ -44,7 +45,7 @@ apiCms.interceptors.response.use(
       try {
         localStorage.removeItem("hfcl_access_token")
       } catch {}
-      window.location.href = "/login"
+      window.location.href = "/"
       return Promise.reject(error.response?.data ?? error)
     }
 
