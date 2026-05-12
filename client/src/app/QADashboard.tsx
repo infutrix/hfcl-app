@@ -22,7 +22,7 @@ import {
 import { Check, EthernetPort, MonitorPlay, Printer, Save } from "lucide-react"
 import { useState } from "react"
 import { useGetAllOtdrDevices } from "@/hooks/use-otdr"
-import { useGetAllBatches } from "@/hooks/use-batch"
+import { useGetAllBatches } from "@/hooks/use-cable"
 
 export default function QaDashboard() {
   const { data: otdrDevices, isPending: isOtdrDevicesPending } =

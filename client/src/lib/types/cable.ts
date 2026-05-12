@@ -1,4 +1,4 @@
-export type BatchRes = {
+export type Batch = {
   id: number
   plant: {
     id: number
