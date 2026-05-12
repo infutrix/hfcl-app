@@ -22,10 +22,12 @@ import {
 import { Check, EthernetPort, MonitorPlay, Printer, Save } from "lucide-react"
 import { useState } from "react"
 import { useGetAllOtdrDevices } from "@/hooks/use-otdr"
+import { useGetAllBatches } from "@/hooks/use-batch"
 
 export default function QaDashboard() {
   const { data: otdrDevices, isPending: isOtdrDevicesPending } =
     useGetAllOtdrDevices()
+  const { data: batches, isPending: isBatchesPending } = useGetAllBatches()
   const [otdr, setOtdr] = useState("")
   const [sfgStage, setSfgStage] = useState("")
   const [batch, setBatch] = useState("")
@@ -56,9 +58,7 @@ export default function QaDashboard() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectLabel>
-                        {isOtdrDevicesPending ? "Loading..." : "OTDR Devices"}
-                      </SelectLabel>
+                      <SelectLabel>OTDR Devices</SelectLabel>
                       {otdrDevices?.map((device) => (
                         <SelectItem key={device.id} value={device.device_id}>
                           {device.device_name}
@@ -105,18 +105,17 @@ export default function QaDashboard() {
               </label>
               <div className="col-span-8">
                 <Select value={batch} onValueChange={setBatch}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger disabled={isBatchesPending} className="w-full">
                     <SelectValue placeholder="Select Batch" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Batches</SelectLabel>
-                      <SelectItem value="Final Sheathing">
-                        Final Sheathing
-                      </SelectItem>
-                      <SelectItem value="Pre-final Sheathing">
-                        Pre-final Sheathing
-                      </SelectItem>
+                      {batches?.map((batch) => (
+                        <SelectItem key={batch.id} value={batch.batch}>
+                          {batch.batch}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
