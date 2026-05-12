@@ -22,12 +22,20 @@ import {
 import { Check, EthernetPort, MonitorPlay, Printer, Save } from "lucide-react"
 import { useState } from "react"
 import { useGetAllOtdrDevices } from "@/hooks/use-otdr"
-import { useGetAllBatches } from "@/hooks/use-cable"
+import {
+  useGetAllBatches,
+  useGetAllCableProfiles,
+  useGetAllSfgStages,
+} from "@/hooks/use-cable"
 
 export default function QaDashboard() {
   const { data: otdrDevices, isPending: isOtdrDevicesPending } =
     useGetAllOtdrDevices()
   const { data: batches, isPending: isBatchesPending } = useGetAllBatches()
+  const { data: sfgStages, isPending: isSfgStagesPending } =
+    useGetAllSfgStages()
+  const { data: cableProfiles, isPending: isCableProfilesPending } =
+    useGetAllCableProfiles()
   const [otdr, setOtdr] = useState("")
   const [sfgStage, setSfgStage] = useState("")
   const [batch, setBatch] = useState("")
@@ -127,18 +135,20 @@ export default function QaDashboard() {
               </label>
               <div className="col-span-8">
                 <Select value={sfgStage} onValueChange={setSfgStage}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    disabled={isSfgStagesPending}
+                    className="w-full"
+                  >
                     <SelectValue placeholder="Select SFG Stage" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>SFG Stages</SelectLabel>
-                      <SelectItem value="Final Sheathing">
-                        Final Sheathing
-                      </SelectItem>
-                      <SelectItem value="Pre-final Sheathing">
-                        Pre-final Sheathing
-                      </SelectItem>
+                      {sfgStages?.map((stage) => (
+                        <SelectItem key={stage.id} value={stage.name}>
+                          {stage.name}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -150,18 +160,23 @@ export default function QaDashboard() {
               </label>
               <div className="col-span-8">
                 <Select value={cableProfile} onValueChange={setCableProfile}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    disabled={isCableProfilesPending}
+                    className="w-full"
+                  >
                     <SelectValue placeholder="Select Cable Profile" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Cable Profiles</SelectLabel>
-                      <SelectItem value="192F META IBR">
-                        192F META IBR
-                      </SelectItem>
-                      <SelectItem value="193F META IBR">
-                        193F META IBR
-                      </SelectItem>
+                      {cableProfiles?.map((profile) => (
+                        <SelectItem
+                          key={profile.id}
+                          value={profile.cable_profile_name}
+                        >
+                          {profile.cable_profile_name}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>

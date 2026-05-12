@@ -27,3 +27,24 @@ export type Batch = {
   created_at: string
   modified_at: string
 }
+
+export type SfgStage = {
+  id: number
+  name: string
+  code: null | string
+  sequence: number
+  status: boolean
+  deleted: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type CableProfile = {
+  id: number
+  cable_profile_name: string
+  profile_key_value: string
+  status: boolean
+  deleted: boolean
+  created_at: string
+  modified_at: string
+}
