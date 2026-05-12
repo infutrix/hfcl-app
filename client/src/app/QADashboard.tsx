@@ -28,6 +28,7 @@ export default function QaDashboard() {
     useGetAllOtdrDevices()
   const [otdr, setOtdr] = useState("")
   const [sfgStage, setSfgStage] = useState("")
+  const [batch, setBatch] = useState("")
   const [cableProfile, setCableProfile] = useState("")
   const [colorCoding, setColorCoding] = useState("")
   return (
@@ -98,6 +99,29 @@ export default function QaDashboard() {
             Cable Design Selection
           </h2>
           <div className="space-y-2">
+            <div className="grid grid-cols-10 items-center gap-2">
+              <label className="col-span-2 font-medium text-foreground">
+                Batch
+              </label>
+              <div className="col-span-8">
+                <Select value={batch} onValueChange={setBatch}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Batch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Batches</SelectLabel>
+                      <SelectItem value="Final Sheathing">
+                        Final Sheathing
+                      </SelectItem>
+                      <SelectItem value="Pre-final Sheathing">
+                        Pre-final Sheathing
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">
                 SFG Stage
@@ -256,16 +280,9 @@ export default function QaDashboard() {
         </Card>
         <Card className="relative overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
           <h2 className="absolute -top-2 bg-background text-sm font-semibold">
-            Current Profile Under Progress
+            OTDR Testing
           </h2>
           <div className="space-y-2">
-            <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Batch Id
-              </label>
-              <Input className="col-span-3" />
-              <Input className="col-span-3" />
-            </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">
                 OTDR Length (km)
