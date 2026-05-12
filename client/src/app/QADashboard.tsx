@@ -332,7 +332,7 @@ export default function QaDashboard() {
             <Button className="h-8 w-full text-xs">
               Test <MonitorPlay />
             </Button>
-            <div className="max-h-150 overflow-x-auto border border-muted-foreground ring-0">
+            <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
               <Table className="border text-xs">
                 <TableHeader>
                   <TableRow className="sticky top-0 bg-blue-100 dark:bg-blue-900">
@@ -408,7 +408,7 @@ export default function QaDashboard() {
                 </TableBody>
               </Table>
             </div>
-            <div className="grid grid-cols-10 items-center gap-2">
+            <div className="grid grid-cols-7 items-center gap-2">
               <label className="col-span-1" />
               <label className="col-span-1 font-medium text-foreground">
                 Tube ID
@@ -429,7 +429,7 @@ export default function QaDashboard() {
                 Cable Dia
               </label>
             </div>
-            <div className="grid grid-cols-10 items-center gap-2">
+            <div className="grid grid-cols-7 items-center gap-2">
               <label className="col-span-1 font-medium text-foreground">
                 (Min)
               </label>
@@ -440,7 +440,7 @@ export default function QaDashboard() {
               <Input readOnly className="col-span-1" />
               <Input readOnly className="col-span-1" />
             </div>
-            <div className="grid grid-cols-10 items-center gap-2">
+            <div className="grid grid-cols-7 items-center gap-2">
               <label className="col-span-1 font-medium text-foreground">
                 (Max)
               </label>
@@ -450,6 +450,15 @@ export default function QaDashboard() {
               <Input readOnly className="col-span-1" />
               <Input readOnly className="col-span-1" />
               <Input readOnly className="col-span-1" />
+            </div>
+            <div className="grid grid-cols-7 items-center gap-2">
+              <label className="col-span-1 font-medium text-foreground">
+                Remarks
+              </label>
+              <Input
+                className="col-span-6 w-full"
+                placeholder="OTDR Test Remarks"
+              />
             </div>
           </div>
         </Card>
