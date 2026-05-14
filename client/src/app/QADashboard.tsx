@@ -20,15 +20,28 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Check, EthernetPort, MonitorPlay, Printer, Save } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useGetAllOtdrDevices } from "@/hooks/use-otdr"
 import {
   useGetAllBatches,
   useGetAllCableProfiles,
   useGetAllSfgStages,
+  useGetBatchFiberTestingData,
+  useSaveBatchCableProfileLink,
 } from "@/hooks/use-cable"
 
 export default function QaDashboard() {
+  // states
+  const [otdr, setOtdr] = useState("")
+  const [sfgStage, setSfgStage] = useState("")
+  const [batch, setBatch] = useState("")
+  const [cableProfile, setCableProfile] = useState("")
+  const [batchCableProfileLinkId, setBatchCableProfileLinkId] = useState<
+    number | undefined
+  >(undefined)
+  // const [colorCoding, setColorCoding] = useState("")
+
+  // queries
   const { data: otdrDevices, isPending: isOtdrDevicesPending } =
     useGetAllOtdrDevices()
   const { data: batches, isPending: isBatchesPending } = useGetAllBatches()
@@ -36,11 +49,40 @@ export default function QaDashboard() {
     useGetAllSfgStages()
   const { data: cableProfiles, isPending: isCableProfilesPending } =
     useGetAllCableProfiles()
-  const [otdr, setOtdr] = useState("")
-  const [sfgStage, setSfgStage] = useState("")
-  const [batch, setBatch] = useState("")
-  const [cableProfile, setCableProfile] = useState("")
-  const [colorCoding, setColorCoding] = useState("")
+  const { data: batchFiberTestingData } = useGetBatchFiberTestingData(
+    batchCableProfileLinkId ?? 0
+  )
+
+  // mutations
+  const { mutateAsync: saveBatchCableProfileLink } =
+    useSaveBatchCableProfileLink()
+
+  const selectedCableProfile = cableProfiles?.find(
+    (profile) => profile.id === parseInt(cableProfile)
+  )
+  const selectedBatch = batches?.find((b) => b.id === parseInt(batch))
+
+  // use effecthooks
+
+  async function handleSaveBatchCableProfileLink() {
+    if (otdr && sfgStage && batch && cableProfile) {
+      const data = await saveBatchCableProfileLink({
+        batch_id: parseInt(batch),
+        otdr_device_id: parseInt(otdr),
+        cable_profile_id: parseInt(cableProfile),
+        customer_id: selectedBatch?.customer.id || 0,
+        stage_id: parseInt(sfgStage),
+        drum_number: "D-001",
+        fiber_type: "Single Mode",
+      })
+      setBatchCableProfileLinkId(data.id)
+    }
+  }
+
+  useEffect(() => {
+    handleSaveBatchCableProfileLink()
+  }, [otdr, sfgStage, batch, cableProfile])
+
   return (
     <div className="grid grid-cols-12 gap-2 p-2">
       <div className="col-span-4 space-y-2">
@@ -68,7 +110,10 @@ export default function QaDashboard() {
                     <SelectGroup>
                       <SelectLabel>OTDR Devices</SelectLabel>
                       {otdrDevices?.map((device) => (
-                        <SelectItem key={device.id} value={device.device_id}>
+                        <SelectItem
+                          key={device.id}
+                          value={device.id.toString()}
+                        >
                           {device.device_name}
                         </SelectItem>
                       ))}
@@ -120,7 +165,7 @@ export default function QaDashboard() {
                     <SelectGroup>
                       <SelectLabel>Batches</SelectLabel>
                       {batches?.map((batch) => (
-                        <SelectItem key={batch.id} value={batch.batch}>
+                        <SelectItem key={batch.id} value={batch.id.toString()}>
                           {batch.batch}
                         </SelectItem>
                       ))}
@@ -145,7 +190,7 @@ export default function QaDashboard() {
                     <SelectGroup>
                       <SelectLabel>SFG Stages</SelectLabel>
                       {sfgStages?.map((stage) => (
-                        <SelectItem key={stage.id} value={stage.name}>
+                        <SelectItem key={stage.id} value={stage.id.toString()}>
                           {stage.name}
                         </SelectItem>
                       ))}
@@ -172,7 +217,7 @@ export default function QaDashboard() {
                       {cableProfiles?.map((profile) => (
                         <SelectItem
                           key={profile.id}
-                          value={profile.cable_profile_name}
+                          value={profile.id.toString()}
                         >
                           {profile.cable_profile_name}
                         </SelectItem>
@@ -182,7 +227,7 @@ export default function QaDashboard() {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-10 items-center gap-2">
+            {/* <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">
                 Color/Coding
               </label>
@@ -200,7 +245,7 @@ export default function QaDashboard() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
+            </div> */}
           </div>
         </Card>
         <Card className="relative overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
@@ -208,87 +253,152 @@ export default function QaDashboard() {
             Current Profile Under Progress
           </h2>
           <div className="space-y-2">
+            {selectedBatch && (
+              <div className="grid grid-cols-10 items-center gap-2">
+                <label className="col-span-2 font-medium text-foreground">
+                  Customer
+                </label>
+                <Input
+                  className="col-span-8"
+                  value={selectedBatch?.customer.name}
+                />
+              </div>
+            )}
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Profile
-              </label>
-              <Input className="col-span-5" />
-              <label className="col-span-2 font-medium text-foreground">
-                Tube Count
-              </label>
-            </div>
-            <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Customer
-              </label>
-              <Input className="col-span-5" />
-              <Input className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Profile
-              </label>
-              <Input className="col-span-5" />
-              <label className="col-span-2 font-medium text-foreground">
-                Rib Count/Tube
-              </label>
-            </div>
-            <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Fiber Type
-              </label>
-              <Input className="col-span-5" />
-              <Input className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Cable Fiber Count
-              </label>
-              <Input className="col-span-5" />
-              <label className="col-span-2 font-medium text-foreground">
-                Fiber Count/Tube or Rib
-              </label>
-            </div>
-            <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Color/Code
-              </label>
-              <Input className="col-span-5" />
-              <Input className="col-span-3" />
+              {selectedCableProfile?.colorProfile.cable_type === "IBR" && (
+                <>
+                  <label className="col-span-2 font-medium text-foreground">
+                    Strand Count
+                  </label>
+                  <Input
+                    className="col-span-8"
+                    value={selectedCableProfile?.colorProfile.strandCount}
+                    readOnly
+                  />
+                  <label className="col-span-2 font-medium text-foreground">
+                    Ribbon Count
+                  </label>
+                  <Input
+                    className="col-span-8"
+                    value={selectedCableProfile?.colorProfile.ribbonCount}
+                    readOnly
+                  />
+                  <label className="col-span-2 font-medium text-foreground">
+                    Fiber Count
+                  </label>
+                  <Input
+                    className="col-span-8"
+                    value={selectedCableProfile?.colorProfile.fiberCount}
+                    readOnly
+                  />
+                  <label className="col-span-2 font-medium text-foreground">
+                    Total Fibers
+                  </label>
+                  <Input
+                    className="col-span-8"
+                    value={selectedCableProfile?.colorProfile.totalFibers}
+                    readOnly
+                  />
+                </>
+              )}
+              {selectedCableProfile?.colorProfile.cable_type ===
+                "FLAT_RIBBON" && (
+                <>
+                  <label className="col-span-2 font-medium text-foreground">
+                    Ribbon Count
+                  </label>
+                  <Input
+                    className="col-span-8"
+                    value={selectedCableProfile?.colorProfile.ribbonCount}
+                    readOnly
+                  />
+                  <label className="col-span-2 font-medium text-foreground">
+                    Fiber Count
+                  </label>
+                  <Input
+                    className="col-span-8"
+                    value={selectedCableProfile?.colorProfile.fiberCount}
+                    readOnly
+                  />
+                  <label className="col-span-2 font-medium text-foreground">
+                    Total Fibers
+                  </label>
+                  <Input
+                    className="col-span-8"
+                    value={selectedCableProfile?.colorProfile.totalFibers}
+                    readOnly
+                  />
+                </>
+              )}
+              {selectedCableProfile?.colorProfile.cable_type ===
+                "MULTI_TUBE" && (
+                <>
+                  <label className="col-span-2 font-medium text-foreground">
+                    Tube Count
+                  </label>
+                  <Input
+                    className="col-span-8"
+                    value={selectedCableProfile?.colorProfile.tubeCount}
+                    readOnly
+                  />
+                  <label className="col-span-2 font-medium text-foreground">
+                    Fiber Count
+                  </label>
+                  <Input
+                    className="col-span-8"
+                    value={selectedCableProfile?.colorProfile.fiberCount}
+                    readOnly
+                  />
+                  <label className="col-span-2 font-medium text-foreground">
+                    Total Fibers
+                  </label>
+                  <Input
+                    className="col-span-8"
+                    value={selectedCableProfile?.colorProfile.totalFibers}
+                    readOnly
+                  />
+                </>
+              )}
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <div className="col-span-2" />
-              <div className="col-span-2">
-                <label className="col-span-2 font-medium text-foreground">
-                  1310(nm)
-                </label>
-              </div>
-              <div className="col-span-2">
-                <label className="col-span-2 font-medium text-foreground">
-                  1550(nm)
-                </label>
-              </div>
-              <div className="col-span-2">
-                <label className="col-span-2 font-medium text-foreground">
-                  1625(nm)
-                </label>
-              </div>
+              {selectedCableProfile?.wavelength_configs.map((config) => (
+                <div className="col-span-2" key={config.wavelength}>
+                  <label className="col-span-2 font-medium text-foreground">
+                    {config.wavelength}(nm)
+                  </label>
+                </div>
+              ))}
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Loss (min)
-              </label>
-              <Input className="col-span-2" />
-              <Input className="col-span-2" />
-              <Input className="col-span-2" />
+              {selectedCableProfile && (
+                <label className="col-span-2 font-medium text-foreground">
+                  Loss (min)
+                </label>
+              )}
+              {selectedCableProfile?.wavelength_configs.map((config) => (
+                <Input
+                  className="col-span-2"
+                  key={config.wavelength}
+                  value={config.min_attenuation}
+                  readOnly
+                />
+              ))}
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Loss (max)
-              </label>
-              <Input className="col-span-2" />
-              <Input className="col-span-2" />
-              <Input className="col-span-2" />
+              {selectedCableProfile && (
+                <label className="col-span-2 font-medium text-foreground">
+                  Loss (max)
+                </label>
+              )}
+              {selectedCableProfile?.wavelength_configs.map((config) => (
+                <Input
+                  className="col-span-2"
+                  key={config.wavelength}
+                  value={config.max_attenuation}
+                  readOnly
+                />
+              ))}
             </div>
           </div>
         </Card>
@@ -350,31 +460,18 @@ export default function QaDashboard() {
               <Table className="border text-xs">
                 <TableHeader>
                   <TableRow className="sticky top-0 bg-blue-100 dark:bg-blue-900">
-                    <TableHead className="h-7 px-2 py-1 text-xs">
-                      Fiber No
-                    </TableHead>
-                    <TableHead className="h-7 px-2 py-1 text-xs">
-                      Tube
-                    </TableHead>
-                    <TableHead className="h-7 px-2 py-1 text-xs">
-                      Ribbon
-                    </TableHead>
-                    <TableHead className="h-7 px-2 py-1 text-xs">
-                      Fiber Code
-                    </TableHead>
-                    <TableHead className="h-7 px-2 py-1 text-xs">
-                      1310(m)
-                    </TableHead>
-                    <TableHead className="h-7 px-2 py-1 text-xs">
-                      1550(m)
-                    </TableHead>
-                    <TableHead className="h-7 px-2 py-1 text-xs">
-                      1625(m)
-                    </TableHead>
+                    {batchFiberTestingData?.headers.map((header) => (
+                      <TableHead
+                        className="h-7 px-2 py-1 text-xs"
+                        key={header.key}
+                      >
+                        {header.label}
+                      </TableHead>
+                    ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {Array.from({ length: 40 }).map((_, i) => (
+                  {batchFiberTestingData?.rows.map((row, i) => (
                     <TableRow
                       key={i}
                       className={
@@ -382,41 +479,32 @@ export default function QaDashboard() {
                       }
                     >
                       <TableCell className="h-6 px-2 py-1 text-xs">
-                        BLUE
+                        {row.fiber_number}
                       </TableCell>
+
                       <TableCell className="h-6 px-2 py-1 text-xs">
-                        RIBBON {Math.floor(i / 12) + 1}
+                        {row.attribute1_value}
                       </TableCell>
+
                       <TableCell className="h-6 px-2 py-1 text-xs">
-                        {
-                          [
-                            "BLUE",
-                            "ORANGE",
-                            "GREEN",
-                            "BROWN",
-                            "SLATE",
-                            "WHITE",
-                            "RED",
-                            "BLACK",
-                            "YELLOW",
-                            "VIOLET",
-                            "PINK",
-                            "AQUA",
-                          ][i % 12]
-                        }
+                        {row.attribute2_value}
                       </TableCell>
-                      <TableCell className="h-6 px-2 py-1 text-xs">
-                        {i + 1}
-                      </TableCell>
-                      <TableCell className="h-6 px-2 py-1 text-xs">
-                        0.328
-                      </TableCell>
-                      <TableCell className="h-6 px-2 py-1 text-xs">
-                        0.178
-                      </TableCell>
-                      <TableCell className="h-6 px-2 py-1 text-xs">
-                        0.201
-                      </TableCell>
+
+                      {row?.attribute3_value && (
+                        <TableCell className="h-6 px-2 py-1 text-xs">
+                          {row?.attribute3_value}
+                        </TableCell>
+                      )}
+
+                      {row.fiber_wavelengths.map((wavelength, idx) => (
+                        <TableCell className="h-6 px-2 py-1 text-xs" key={idx}>
+                          <Input
+                            readOnly
+                            className="h-6 px-2 py-1 text-xs"
+                            value={wavelength.measured_value}
+                          />
+                        </TableCell>
+                      ))}
                     </TableRow>
                   ))}
                 </TableBody>

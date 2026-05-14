@@ -1,7 +1,14 @@
 import Cable from "@/lib/repositories/cable.repository"
-import type { Batch, CableProfile, SfgStage } from "@/lib/types/cable"
+import type {
+  Batch,
+  BatchCableProfileLinkPayload,
+  BatchCableProfileLinkResponse,
+  BatchFiberTestingData,
+  CableProfile,
+  SfgStage,
+} from "@/lib/types/cable"
 import type { ApiErrorResponse } from "@/lib/types/common"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 
 export const useGetAllBatches = () => {
   return useQuery<Batch[], ApiErrorResponse>({
@@ -27,5 +34,27 @@ export const useGetAllCableProfiles = () => {
     queryKey: ["cable-profiles"],
     refetchOnMount: false,
     refetchOnWindowFocus: false,
+  })
+}
+
+export const useGetBatchFiberTestingData = (
+  batchCableProfileLinkId: number
+) => {
+  return useQuery<BatchFiberTestingData, ApiErrorResponse>({
+    queryFn: () => Cable.getBatchFiberTestingData(batchCableProfileLinkId),
+    queryKey: ["batch-fiber-testing-data", batchCableProfileLinkId],
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    enabled: !!batchCableProfileLinkId,
+  })
+}
+
+export const useSaveBatchCableProfileLink = () => {
+  return useMutation<
+    BatchCableProfileLinkResponse,
+    ApiErrorResponse,
+    BatchCableProfileLinkPayload
+  >({
+    mutationFn: Cable.saveBatchCableProfileLink,
   })
 }

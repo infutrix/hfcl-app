@@ -1,5 +1,12 @@
 import apiCms from "../api/http-client-cms"
-import type { Batch, CableProfile, SfgStage } from "../types/cable"
+import type {
+  Batch,
+  BatchCableProfileLinkPayload,
+  BatchCableProfileLinkResponse,
+  BatchFiberTestingData,
+  CableProfile,
+  SfgStage,
+} from "../types/cable"
 
 export default class Cable {
   static async getAllBatches(): Promise<Batch[]> {
@@ -12,5 +19,19 @@ export default class Cable {
 
   static async getAllCableProfiles(): Promise<CableProfile[]> {
     return await apiCms.get("/cable-profiles")
+  }
+
+  static async saveBatchCableProfileLink(
+    data: BatchCableProfileLinkPayload
+  ): Promise<BatchCableProfileLinkResponse> {
+    return await apiCms.post("/batch-cable-profiles", data)
+  }
+
+  static async getBatchFiberTestingData(
+    batchCableProfileLinkId: number
+  ): Promise<BatchFiberTestingData> {
+    return await apiCms.get(
+      `/batch-fiber-testing/saved/${batchCableProfileLinkId}`
+    )
   }
 }
