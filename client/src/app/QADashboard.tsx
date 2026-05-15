@@ -13,8 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Check, EthernetPort, LogIn, LogOut, MonitorPlay, Printer, Save } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useGetAllOtdrDevices } from "@/hooks/use-otdr"
+import { useEffect, useMemo, useState } from "react"
+import { useConnectOtdr, useGetAllOtdrDevices, useGetOtdrConnectionStatus } from "@/hooks/use-otdr"
 import {
   useGetAllBatches,
   useGetAllCableProfiles,
@@ -39,15 +39,41 @@ export default function QaDashboard() {
   const { data: sfgStages, isPending: isSfgStagesPending } = useGetAllSfgStages()
   const { data: cableProfiles, isPending: isCableProfilesPending } = useGetAllCableProfiles()
   const { data: batchFiberTestingData } = useGetBatchFiberTestingData(batchCableProfileLinkId ?? 0)
+  const { data: otdrStatus, isLoading: isStatusLoading, refetch: refetchOtdrStatus } = useGetOtdrConnectionStatus()
   const { data: currentUser } = useMe()
 
   // mutations
   const { mutateAsync: saveBatchCableProfileLink } = useSaveBatchCableProfileLink()
+  const connectOtdr = useConnectOtdr()
+  const handleConnect = async () => {
+    await connectOtdr.mutateAsync({ connectionType: "connect" })
+    await refetchOtdrStatus()
+  }
+  const handleDisconnect = async () => {
+    await connectOtdr.mutateAsync({ connectionType: "disconnect" })
+    await refetchOtdrStatus()
+  }
   const logout = useLogout()
 
   // derived states
   const selectedCableProfile = cableProfiles?.find((profile) => profile.id === parseInt(cableProfile))
   const selectedBatch = batches?.find((b) => b.id === parseInt(batch))
+
+  const connectionBadgeVariant = useMemo(() => {
+    if (!otdrStatus) {
+      return "secondary" as const
+    }
+
+    if (otdrStatus.state === "connected") {
+      return "default" as const
+    }
+
+    if (otdrStatus.state === "connecting") {
+      return "secondary" as const
+    }
+
+    return "destructive" as const
+  }, [otdrStatus])
 
   async function handleSaveBatchCableProfileLink() {
     if (otdr && sfgStage && batch && cableProfile) {
@@ -89,8 +115,8 @@ export default function QaDashboard() {
         <Card className="relative overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
           <h2 className="absolute -top-2 bg-background text-sm font-semibold">OTDR Connectivity</h2>
           <div className="space-y-2">
-            <Badge className="col-span-3 bg-green-500 text-xs">
-              Connected <Check />
+            <Badge variant={connectionBadgeVariant}>
+              {isStatusLoading ? "Loading" : otdrStatus?.state ? otdrStatus.state : "Unknown"}
             </Badge>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">OTDR No.</label>
@@ -118,8 +144,14 @@ export default function QaDashboard() {
                 <Input className="col-span-2" placeholder="192.168.1.38" value={"192.168.1.38"} />
                 <Input className="col-span-1" placeholder="2283" value={"2283"} />
               </div>
-              <Button variant="destructive" className="col-span-3 h-8 w-full text-xs">
-                Disconnect <EthernetPort />
+              <Button
+                disabled={connectOtdr.isPending}
+                onClick={otdrStatus?.state === "connected" ? handleDisconnect : handleConnect}
+                variant={otdrStatus?.state === "connected" ? "destructive" : "default"}
+                className="col-span-3 h-8 w-full text-xs"
+              >
+                {otdrStatus?.state === "connected" ? "Disconnect" : "Connect"}
+                <EthernetPort />
               </Button>
             </div>
           </div>

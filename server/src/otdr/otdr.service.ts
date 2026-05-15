@@ -521,9 +521,6 @@ export class OtdrService implements OnModuleDestroy {
     const blob = new Blob([fileBytes], {
       type: image.mimetype || 'application/octet-stream',
     });
-    console.log('Working');
-    console.log('image', image);
-
     formData.append('file', blob, image.originalname || 'capture.jpg');
 
     const abortController = new AbortController();
