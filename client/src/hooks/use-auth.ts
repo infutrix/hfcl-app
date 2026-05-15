@@ -31,3 +31,11 @@ export const useMe = () => {
     refetchOnWindowFocus: false,
   })
 }
+
+export const useLogout = () => {
+  const navigate = useNavigate()
+  return () => {
+    useAuthStore.getState().logout()
+    navigate("/", { replace: true })
+  }
+}

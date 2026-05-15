@@ -22,7 +22,7 @@ import {
   useGetBatchFiberTestingData,
   useSaveBatchCableProfileLink,
 } from "@/hooks/use-cable"
-import { useMe } from "@/hooks/use-auth"
+import { useLogout, useMe } from "@/hooks/use-auth"
 
 export default function QaDashboard() {
   // states
@@ -43,10 +43,11 @@ export default function QaDashboard() {
 
   // mutations
   const { mutateAsync: saveBatchCableProfileLink } = useSaveBatchCableProfileLink()
+  const logout = useLogout()
 
+  // derived states
   const selectedCableProfile = cableProfiles?.find((profile) => profile.id === parseInt(cableProfile))
   const selectedBatch = batches?.find((b) => b.id === parseInt(batch))
-  // use effecthooks
 
   async function handleSaveBatchCableProfileLink() {
     if (otdr && sfgStage && batch && cableProfile) {
@@ -79,10 +80,10 @@ export default function QaDashboard() {
               </span>
               👋
             </h1>
-            <Badge className="bg-blue-500 text-xs">{currentUser?.userRole.role}</Badge>
+            <Badge className="text-xs">{currentUser?.userRole.role}</Badge>
           </div>
-          <Button variant="destructive" size="icon" onClick={() => window.location.reload()}>
-            <LogOut className="mr-1" size={16} />
+          <Button variant="default" size="icon" onClick={logout}>
+            <LogOut size={16} />
           </Button>
         </div>
         <Card className="relative overflow-visible rounded-none border border-muted-foreground p-4 ring-0">

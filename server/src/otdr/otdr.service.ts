@@ -53,8 +53,7 @@ export class OtdrService implements OnModuleDestroy {
   private readonly bCursorCommand = 'sense:bcursor?';
   private readonly aCursorCommand = 'sense:acursor?';
   private readonly runStorageDir = join(process.cwd(), 'public', 'otdr-runs');
-  private readonly iBrPredictUrl =
-    'https://0r6gc67m-8000.inc1.devtunnels.ms/api/v1/predict/ibr';
+  private readonly iBrPredictUrl = 'http://localhost:8000/api/v1/predict/ibr';
   private readonly iBrPredictTimeoutMs = 200000;
   private readonly captureImageUrl =
     process.env.CAPTURE_IMAGE_URL ?? 'http://localhost:5001/capture';
@@ -108,6 +107,7 @@ export class OtdrService implements OnModuleDestroy {
     };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async runSkippyMetricsWithImage(timeoutMs?: number) {
     const image = await this.fetchCapturedImage();
 
@@ -123,61 +123,61 @@ export class OtdrService implements OnModuleDestroy {
 
     await writeFile(imageFilePath, image.buffer);
 
-    const metricsResult = await this.enqueueCommand(async () => {
-      const readyCheck = await this.waitUntilOtdrReady(timeoutMs);
-      const lossResponse = await this.sendCommand(
-        this.lossAt1310Command,
-        timeoutMs,
-      );
-      const bCursorResponse = await this.sendCommand(
-        this.bCursorCommand,
-        timeoutMs,
-      );
-      const aCursorResponse = await this.sendCommand(
-        this.aCursorCommand,
-        timeoutMs,
-      );
-      const iorResponse = await this.sendCommand(
-        this.iorAt1310Command,
-        timeoutMs,
-      );
+    // const metricsResult = await this.enqueueCommand(async () => {
+    //   const readyCheck = await this.waitUntilOtdrReady(timeoutMs);
+    //   const lossResponse = await this.sendCommand(
+    //     this.lossAt1310Command,
+    //     timeoutMs,
+    //   );
+    //   const bCursorResponse = await this.sendCommand(
+    //     this.bCursorCommand,
+    //     timeoutMs,
+    //   );
+    //   const aCursorResponse = await this.sendCommand(
+    //     this.aCursorCommand,
+    //     timeoutMs,
+    //   );
+    //   const iorResponse = await this.sendCommand(
+    //     this.iorAt1310Command,
+    //     timeoutMs,
+    //   );
 
-      const lossValue = this.extractFirstNumber(lossResponse);
-      const bCursor = this.extractFirstNumber(bCursorResponse);
-      const aCursor = this.extractFirstNumber(aCursorResponse);
-      const iorValue = this.extractFirstNumber(iorResponse);
+    //   const lossValue = this.extractFirstNumber(lossResponse);
+    //   const bCursor = this.extractFirstNumber(bCursorResponse);
+    //   const aCursor = this.extractFirstNumber(aCursorResponse);
+    //   const iorValue = this.extractFirstNumber(iorResponse);
 
-      const length =
-        aCursor !== null && bCursor !== null
-          ? Math.abs(bCursor - aCursor)
-          : null;
+    //   const length =
+    //     aCursor !== null && bCursor !== null
+    //       ? Math.abs(bCursor - aCursor)
+    //       : null;
 
-      return {
-        readiness: readyCheck,
-        metrics: {
-          loss: lossValue,
-          ior: iorValue,
-          length,
-          aCursor,
-          bCursor,
-        },
-        responses: {
-          loss: lossResponse,
-          bCursor: bCursorResponse,
-          aCursor: aCursorResponse,
-          ior: iorResponse,
-        },
-        commands: {
-          readiness: this.initiateStateCommand,
-          loss: this.lossAt1310Command,
-          bCursor: this.bCursorCommand,
-          aCursor: this.aCursorCommand,
-          ior: this.iorAt1310Command,
-        },
-      };
-    });
+    //   return {
+    //     readiness: readyCheck,
+    //     metrics: {
+    //       loss: lossValue,
+    //       ior: iorValue,
+    //       length,
+    //       aCursor,
+    //       bCursor,
+    //     },
+    //     responses: {
+    //       loss: lossResponse,
+    //       bCursor: bCursorResponse,
+    //       aCursor: aCursorResponse,
+    //       ior: iorResponse,
+    //     },
+    //     commands: {
+    //       readiness: this.initiateStateCommand,
+    //       loss: this.lossAt1310Command,
+    //       bCursor: this.bCursorCommand,
+    //       aCursor: this.aCursorCommand,
+    //       ior: this.iorAt1310Command,
+    //     },
+    //   };
+    // });
 
-    const otdrResponse = metricsResult.responses.loss;
+    // const otdrResponse = metricsResult.responses.loss;
     const colorPrediction = await this.predictIbrColor(image);
     const recordFileName = `${runId}.json`;
     const recordFilePath = join(this.runStorageDir, recordFileName);
@@ -185,11 +185,11 @@ export class OtdrService implements OnModuleDestroy {
     const record = {
       runId,
       command: this.lossAt1310Command,
-      otdrResponse,
-      readiness: metricsResult.readiness,
-      metrics: metricsResult.metrics,
-      responses: metricsResult.responses,
-      commands: metricsResult.commands,
+      // otdrResponse,
+      // readiness: metricsResult.readiness,
+      // metrics: metricsResult.metrics,
+      // responses: metricsResult.responses,
+      // commands: metricsResult.commands,
       colorPrediction,
       createdAt: new Date().toISOString(),
       image: {
@@ -206,11 +206,11 @@ export class OtdrService implements OnModuleDestroy {
       message: 'Skippy metrics with image executed successfully.',
       runId,
       command: this.lossAt1310Command,
-      otdrResponse,
-      readiness: metricsResult.readiness,
-      metrics: metricsResult.metrics,
-      responses: metricsResult.responses,
-      commands: metricsResult.commands,
+      // otdrResponse,
+      // readiness: metricsResult.readiness,
+      // metrics: metricsResult.metrics,
+      // responses: metricsResult.responses,
+      // commands: metricsResult.commands,
       colorPrediction,
       savedFiles: {
         image: join('public', 'otdr-runs', imageFileName),
