@@ -14,7 +14,12 @@ import {
 } from "@/components/ui/select"
 import { Check, EthernetPort, LogIn, LogOut, MonitorPlay, Printer, Save } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
-import { useConnectOtdr, useGetAllOtdrDevices, useGetOtdrConnectionStatus } from "@/hooks/use-otdr"
+import {
+  useConnectOtdr,
+  useGetAllOtdrDevices,
+  useGetOtdrConnectionStatus,
+  useRunSkippyMetricsWithImage,
+} from "@/hooks/use-otdr"
 import {
   useGetAllBatches,
   useGetAllCableProfiles,
@@ -45,6 +50,10 @@ export default function QaDashboard() {
   // mutations
   const { mutateAsync: saveBatchCableProfileLink } = useSaveBatchCableProfileLink()
   const connectOtdr = useConnectOtdr()
+  const runSkippyMetricsWithImage = useRunSkippyMetricsWithImage()
+  const handleStartTesting = async () => {
+    await runSkippyMetricsWithImage.mutateAsync({ timeoutMs: 10000 })
+  }
   const handleConnect = async () => {
     await connectOtdr.mutateAsync({ connectionType: "connect" })
     await refetchOtdrStatus()
@@ -75,8 +84,13 @@ export default function QaDashboard() {
     return "destructive" as const
   }, [otdrStatus])
 
+  const checkIfAllSelected = useMemo(
+    () => otdr && sfgStage && batch && cableProfile,
+    [otdr, sfgStage, batch, cableProfile]
+  )
+
   async function handleSaveBatchCableProfileLink() {
-    if (otdr && sfgStage && batch && cableProfile) {
+    if (checkIfAllSelected) {
       const data = await saveBatchCableProfileLink({
         batch_id: parseInt(batch),
         otdr_device_id: parseInt(otdr),
@@ -329,7 +343,10 @@ export default function QaDashboard() {
               <Input className="col-span-2" />
               <Input className="col-span-2" />
               <Input className="col-span-2" />
-              <Button className="col-span-2 h-8 w-full text-xs">
+              <Button
+                disabled={otdrStatus?.state !== "connected" || !checkIfAllSelected}
+                className="col-span-2 h-8 w-full text-xs"
+              >
                 Test <MonitorPlay />
               </Button>
             </div>
@@ -340,8 +357,12 @@ export default function QaDashboard() {
         <Card className="relative h-full overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
           <h2 className="absolute -top-2 bg-background text-sm font-semibold">OTDR Losses Testing</h2>
           <div className="space-y-2">
-            <Button className="h-8 w-full text-xs">
-              Test <MonitorPlay />
+            <Button
+              onClick={handleStartTesting}
+              disabled={!checkIfAllSelected || runSkippyMetricsWithImage.isPending}
+              className="h-8 w-full text-xs"
+            >
+              {runSkippyMetricsWithImage.isPending ? "Testing..." : "Test"} <MonitorPlay />
             </Button>
             <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
               <Table className="border text-xs">
