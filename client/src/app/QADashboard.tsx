@@ -2,14 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Select,
   SelectContent,
@@ -19,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Check, EthernetPort, MonitorPlay, Printer, Save } from "lucide-react"
+import { Check, EthernetPort, LogIn, LogOut, MonitorPlay, Printer, Save } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useGetAllOtdrDevices } from "@/hooks/use-otdr"
 import {
@@ -29,6 +22,7 @@ import {
   useGetBatchFiberTestingData,
   useSaveBatchCableProfileLink,
 } from "@/hooks/use-cable"
+import { useMe } from "@/hooks/use-auth"
 
 export default function QaDashboard() {
   // states
@@ -36,32 +30,22 @@ export default function QaDashboard() {
   const [sfgStage, setSfgStage] = useState("")
   const [batch, setBatch] = useState("")
   const [cableProfile, setCableProfile] = useState("")
-  const [batchCableProfileLinkId, setBatchCableProfileLinkId] = useState<
-    number | undefined
-  >(undefined)
+  const [batchCableProfileLinkId, setBatchCableProfileLinkId] = useState<number | undefined>(undefined)
   // const [colorCoding, setColorCoding] = useState("")
 
   // queries
-  const { data: otdrDevices, isPending: isOtdrDevicesPending } =
-    useGetAllOtdrDevices()
+  const { data: otdrDevices, isPending: isOtdrDevicesPending } = useGetAllOtdrDevices()
   const { data: batches, isPending: isBatchesPending } = useGetAllBatches()
-  const { data: sfgStages, isPending: isSfgStagesPending } =
-    useGetAllSfgStages()
-  const { data: cableProfiles, isPending: isCableProfilesPending } =
-    useGetAllCableProfiles()
-  const { data: batchFiberTestingData } = useGetBatchFiberTestingData(
-    batchCableProfileLinkId ?? 0
-  )
+  const { data: sfgStages, isPending: isSfgStagesPending } = useGetAllSfgStages()
+  const { data: cableProfiles, isPending: isCableProfilesPending } = useGetAllCableProfiles()
+  const { data: batchFiberTestingData } = useGetBatchFiberTestingData(batchCableProfileLinkId ?? 0)
+  const { data: currentUser } = useMe()
 
   // mutations
-  const { mutateAsync: saveBatchCableProfileLink } =
-    useSaveBatchCableProfileLink()
+  const { mutateAsync: saveBatchCableProfileLink } = useSaveBatchCableProfileLink()
 
-  const selectedCableProfile = cableProfiles?.find(
-    (profile) => profile.id === parseInt(cableProfile)
-  )
+  const selectedCableProfile = cableProfiles?.find((profile) => profile.id === parseInt(cableProfile))
   const selectedBatch = batches?.find((b) => b.id === parseInt(batch))
-
   // use effecthooks
 
   async function handleSaveBatchCableProfileLink() {
@@ -86,34 +70,39 @@ export default function QaDashboard() {
   return (
     <div className="grid grid-cols-12 gap-2 p-2">
       <div className="col-span-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg font-bold">
+              Hai{" "}
+              <span className="underline">
+                {currentUser?.first_name} {currentUser?.last_name}
+              </span>
+              👋
+            </h1>
+            <Badge className="bg-blue-500 text-xs">{currentUser?.userRole.role}</Badge>
+          </div>
+          <Button variant="destructive" size="icon" onClick={() => window.location.reload()}>
+            <LogOut className="mr-1" size={16} />
+          </Button>
+        </div>
         <Card className="relative overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
-          <h2 className="absolute -top-2 bg-background text-sm font-semibold">
-            OTDR Connectivity
-          </h2>
+          <h2 className="absolute -top-2 bg-background text-sm font-semibold">OTDR Connectivity</h2>
           <div className="space-y-2">
             <Badge className="col-span-3 bg-green-500 text-xs">
               Connected <Check />
             </Badge>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                OTDR No.
-              </label>
+              <label className="col-span-2 font-medium text-foreground">OTDR No.</label>
               <div className="col-span-8">
                 <Select value={otdr} onValueChange={setOtdr}>
-                  <SelectTrigger
-                    disabled={isOtdrDevicesPending}
-                    className="w-full"
-                  >
+                  <SelectTrigger disabled={isOtdrDevicesPending} className="w-full">
                     <SelectValue placeholder="Select OTDR" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>OTDR Devices</SelectLabel>
                       {otdrDevices?.map((device) => (
-                        <SelectItem
-                          key={device.id}
-                          value={device.id.toString()}
-                        >
+                        <SelectItem key={device.id} value={device.id.toString()}>
                           {device.device_name}
                         </SelectItem>
                       ))}
@@ -123,39 +112,22 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                OTDR IP/Port
-              </label>
+              <label className="col-span-2 font-medium text-foreground">OTDR IP/Port</label>
               <div className="col-span-5 grid grid-cols-3 gap-2">
-                <Input
-                  className="col-span-2"
-                  placeholder="192.168.1.38"
-                  value={"192.168.1.38"}
-                />
-                <Input
-                  className="col-span-1"
-                  placeholder="2283"
-                  value={"2283"}
-                />
+                <Input className="col-span-2" placeholder="192.168.1.38" value={"192.168.1.38"} />
+                <Input className="col-span-1" placeholder="2283" value={"2283"} />
               </div>
-              <Button
-                variant="destructive"
-                className="col-span-3 h-8 w-full text-xs"
-              >
+              <Button variant="destructive" className="col-span-3 h-8 w-full text-xs">
                 Disconnect <EthernetPort />
               </Button>
             </div>
           </div>
         </Card>
         <Card className="relative overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
-          <h2 className="absolute -top-2 bg-background text-sm font-semibold">
-            Cable Design Selection
-          </h2>
+          <h2 className="absolute -top-2 bg-background text-sm font-semibold">Cable Design Selection</h2>
           <div className="space-y-2">
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Batch
-              </label>
+              <label className="col-span-2 font-medium text-foreground">Batch</label>
               <div className="col-span-8">
                 <Select value={batch} onValueChange={setBatch}>
                   <SelectTrigger disabled={isBatchesPending} className="w-full">
@@ -175,15 +147,10 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                SFG Stage
-              </label>
+              <label className="col-span-2 font-medium text-foreground">SFG Stage</label>
               <div className="col-span-8">
                 <Select value={sfgStage} onValueChange={setSfgStage}>
-                  <SelectTrigger
-                    disabled={isSfgStagesPending}
-                    className="w-full"
-                  >
+                  <SelectTrigger disabled={isSfgStagesPending} className="w-full">
                     <SelectValue placeholder="Select SFG Stage" />
                   </SelectTrigger>
                   <SelectContent>
@@ -200,25 +167,17 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Profile
-              </label>
+              <label className="col-span-2 font-medium text-foreground">Profile</label>
               <div className="col-span-8">
                 <Select value={cableProfile} onValueChange={setCableProfile}>
-                  <SelectTrigger
-                    disabled={isCableProfilesPending}
-                    className="w-full"
-                  >
+                  <SelectTrigger disabled={isCableProfilesPending} className="w-full">
                     <SelectValue placeholder="Select Cable Profile" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Cable Profiles</SelectLabel>
                       {cableProfiles?.map((profile) => (
-                        <SelectItem
-                          key={profile.id}
-                          value={profile.id.toString()}
-                        >
+                        <SelectItem key={profile.id} value={profile.id.toString()}>
                           {profile.cable_profile_name}
                         </SelectItem>
                       ))}
@@ -249,114 +208,45 @@ export default function QaDashboard() {
           </div>
         </Card>
         <Card className="relative overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
-          <h2 className="absolute -top-2 bg-background text-sm font-semibold">
-            Current Profile Under Progress
-          </h2>
+          <h2 className="absolute -top-2 bg-background text-sm font-semibold">Current Profile Under Progress</h2>
           <div className="space-y-2">
             {selectedBatch && (
               <div className="grid grid-cols-10 items-center gap-2">
-                <label className="col-span-2 font-medium text-foreground">
-                  Customer
-                </label>
-                <Input
-                  className="col-span-8"
-                  value={selectedBatch?.customer.name}
-                />
+                <label className="col-span-2 font-medium text-foreground">Customer</label>
+                <Input className="col-span-8" value={selectedBatch?.customer.name} />
               </div>
             )}
             <div className="grid grid-cols-10 items-center gap-2">
               {selectedCableProfile?.colorProfile.cable_type === "IBR" && (
                 <>
-                  <label className="col-span-2 font-medium text-foreground">
-                    Strand Count
-                  </label>
-                  <Input
-                    className="col-span-8"
-                    value={selectedCableProfile?.colorProfile.strandCount}
-                    readOnly
-                  />
-                  <label className="col-span-2 font-medium text-foreground">
-                    Ribbon Count
-                  </label>
-                  <Input
-                    className="col-span-8"
-                    value={selectedCableProfile?.colorProfile.ribbonCount}
-                    readOnly
-                  />
-                  <label className="col-span-2 font-medium text-foreground">
-                    Fiber Count
-                  </label>
-                  <Input
-                    className="col-span-8"
-                    value={selectedCableProfile?.colorProfile.fiberCount}
-                    readOnly
-                  />
-                  <label className="col-span-2 font-medium text-foreground">
-                    Total Fibers
-                  </label>
-                  <Input
-                    className="col-span-8"
-                    value={selectedCableProfile?.colorProfile.totalFibers}
-                    readOnly
-                  />
+                  <label className="col-span-2 font-medium text-foreground">Strand Count</label>
+                  <Input className="col-span-8" value={selectedCableProfile?.colorProfile.strandCount} readOnly />
+                  <label className="col-span-2 font-medium text-foreground">Ribbon Count</label>
+                  <Input className="col-span-8" value={selectedCableProfile?.colorProfile.ribbonCount} readOnly />
+                  <label className="col-span-2 font-medium text-foreground">Fiber Count</label>
+                  <Input className="col-span-8" value={selectedCableProfile?.colorProfile.fiberCount} readOnly />
+                  <label className="col-span-2 font-medium text-foreground">Total Fibers</label>
+                  <Input className="col-span-8" value={selectedCableProfile?.colorProfile.totalFibers} readOnly />
                 </>
               )}
-              {selectedCableProfile?.colorProfile.cable_type ===
-                "FLAT_RIBBON" && (
+              {selectedCableProfile?.colorProfile.cable_type === "FLAT_RIBBON" && (
                 <>
-                  <label className="col-span-2 font-medium text-foreground">
-                    Ribbon Count
-                  </label>
-                  <Input
-                    className="col-span-8"
-                    value={selectedCableProfile?.colorProfile.ribbonCount}
-                    readOnly
-                  />
-                  <label className="col-span-2 font-medium text-foreground">
-                    Fiber Count
-                  </label>
-                  <Input
-                    className="col-span-8"
-                    value={selectedCableProfile?.colorProfile.fiberCount}
-                    readOnly
-                  />
-                  <label className="col-span-2 font-medium text-foreground">
-                    Total Fibers
-                  </label>
-                  <Input
-                    className="col-span-8"
-                    value={selectedCableProfile?.colorProfile.totalFibers}
-                    readOnly
-                  />
+                  <label className="col-span-2 font-medium text-foreground">Ribbon Count</label>
+                  <Input className="col-span-8" value={selectedCableProfile?.colorProfile.ribbonCount} readOnly />
+                  <label className="col-span-2 font-medium text-foreground">Fiber Count</label>
+                  <Input className="col-span-8" value={selectedCableProfile?.colorProfile.fiberCount} readOnly />
+                  <label className="col-span-2 font-medium text-foreground">Total Fibers</label>
+                  <Input className="col-span-8" value={selectedCableProfile?.colorProfile.totalFibers} readOnly />
                 </>
               )}
-              {selectedCableProfile?.colorProfile.cable_type ===
-                "MULTI_TUBE" && (
+              {selectedCableProfile?.colorProfile.cable_type === "MULTI_TUBE" && (
                 <>
-                  <label className="col-span-2 font-medium text-foreground">
-                    Tube Count
-                  </label>
-                  <Input
-                    className="col-span-8"
-                    value={selectedCableProfile?.colorProfile.tubeCount}
-                    readOnly
-                  />
-                  <label className="col-span-2 font-medium text-foreground">
-                    Fiber Count
-                  </label>
-                  <Input
-                    className="col-span-8"
-                    value={selectedCableProfile?.colorProfile.fiberCount}
-                    readOnly
-                  />
-                  <label className="col-span-2 font-medium text-foreground">
-                    Total Fibers
-                  </label>
-                  <Input
-                    className="col-span-8"
-                    value={selectedCableProfile?.colorProfile.totalFibers}
-                    readOnly
-                  />
+                  <label className="col-span-2 font-medium text-foreground">Tube Count</label>
+                  <Input className="col-span-8" value={selectedCableProfile?.colorProfile.tubeCount} readOnly />
+                  <label className="col-span-2 font-medium text-foreground">Fiber Count</label>
+                  <Input className="col-span-8" value={selectedCableProfile?.colorProfile.fiberCount} readOnly />
+                  <label className="col-span-2 font-medium text-foreground">Total Fibers</label>
+                  <Input className="col-span-8" value={selectedCableProfile?.colorProfile.totalFibers} readOnly />
                 </>
               )}
             </div>
@@ -364,79 +254,45 @@ export default function QaDashboard() {
               <div className="col-span-2" />
               {selectedCableProfile?.wavelength_configs.map((config) => (
                 <div className="col-span-2" key={config.wavelength}>
-                  <label className="col-span-2 font-medium text-foreground">
-                    {config.wavelength}(nm)
-                  </label>
+                  <label className="col-span-2 font-medium text-foreground">{config.wavelength}(nm)</label>
                 </div>
               ))}
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              {selectedCableProfile && (
-                <label className="col-span-2 font-medium text-foreground">
-                  Loss (min)
-                </label>
-              )}
+              {selectedCableProfile && <label className="col-span-2 font-medium text-foreground">Loss (min)</label>}
               {selectedCableProfile?.wavelength_configs.map((config) => (
-                <Input
-                  className="col-span-2"
-                  key={config.wavelength}
-                  value={config.min_attenuation}
-                  readOnly
-                />
+                <Input className="col-span-2" key={config.wavelength} value={config.min_attenuation} readOnly />
               ))}
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              {selectedCableProfile && (
-                <label className="col-span-2 font-medium text-foreground">
-                  Loss (max)
-                </label>
-              )}
+              {selectedCableProfile && <label className="col-span-2 font-medium text-foreground">Loss (max)</label>}
               {selectedCableProfile?.wavelength_configs.map((config) => (
-                <Input
-                  className="col-span-2"
-                  key={config.wavelength}
-                  value={config.max_attenuation}
-                  readOnly
-                />
+                <Input className="col-span-2" key={config.wavelength} value={config.max_attenuation} readOnly />
               ))}
             </div>
           </div>
         </Card>
         <Card className="relative overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
-          <h2 className="absolute -top-2 bg-background text-sm font-semibold">
-            OTDR Testing
-          </h2>
+          <h2 className="absolute -top-2 bg-background text-sm font-semibold">OTDR Testing</h2>
           <div className="space-y-2">
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                OTDR Length (km)
-              </label>
+              <label className="col-span-2 font-medium text-foreground">OTDR Length (km)</label>
               <Input className="col-span-6" />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                IOR
-              </label>
+              <label className="col-span-2 font-medium text-foreground">IOR</label>
               <div className="col-span-2">
-                <label className="col-span-2 font-medium text-foreground">
-                  1310(nm)
-                </label>
+                <label className="col-span-2 font-medium text-foreground">1310(nm)</label>
               </div>
               <div className="col-span-2">
-                <label className="col-span-2 font-medium text-foreground">
-                  1550(nm)
-                </label>
+                <label className="col-span-2 font-medium text-foreground">1550(nm)</label>
               </div>
               <div className="col-span-2">
-                <label className="col-span-2 font-medium text-foreground">
-                  1625(nm)
-                </label>
+                <label className="col-span-2 font-medium text-foreground">1625(nm)</label>
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-2 font-medium text-foreground">
-                Fiber
-              </label>
+              <label className="col-span-2 font-medium text-foreground">Fiber</label>
               <Input className="col-span-2" />
               <Input className="col-span-2" />
               <Input className="col-span-2" />
@@ -449,9 +305,7 @@ export default function QaDashboard() {
       </div>
       <div className="col-span-5 space-y-2">
         <Card className="relative h-full overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
-          <h2 className="absolute -top-2 bg-background text-sm font-semibold">
-            OTDR Losses Testing
-          </h2>
+          <h2 className="absolute -top-2 bg-background text-sm font-semibold">OTDR Losses Testing</h2>
           <div className="space-y-2">
             <Button className="h-8 w-full text-xs">
               Test <MonitorPlay />
@@ -461,10 +315,7 @@ export default function QaDashboard() {
                 <TableHeader>
                   <TableRow className="sticky top-0 bg-blue-100 dark:bg-blue-900">
                     {batchFiberTestingData?.headers.map((header) => (
-                      <TableHead
-                        className="h-7 px-2 py-1 text-xs"
-                        key={header.key}
-                      >
+                      <TableHead className="h-7 px-2 py-1 text-xs" key={header.key}>
                         {header.label}
                       </TableHead>
                     ))}
@@ -472,37 +323,20 @@ export default function QaDashboard() {
                 </TableHeader>
                 <TableBody>
                   {batchFiberTestingData?.rows.map((row, i) => (
-                    <TableRow
-                      key={i}
-                      className={
-                        i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950" : ""
-                      }
-                    >
-                      <TableCell className="h-6 px-2 py-1 text-xs">
-                        {row.fiber_number}
-                      </TableCell>
+                    <TableRow key={i} className={i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950" : ""}>
+                      <TableCell className="h-6 px-2 py-1 text-xs">{row.fiber_number}</TableCell>
 
-                      <TableCell className="h-6 px-2 py-1 text-xs">
-                        {row.attribute1_value}
-                      </TableCell>
+                      <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute1_value}</TableCell>
 
-                      <TableCell className="h-6 px-2 py-1 text-xs">
-                        {row.attribute2_value}
-                      </TableCell>
+                      <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute2_value}</TableCell>
 
                       {row?.attribute3_value && (
-                        <TableCell className="h-6 px-2 py-1 text-xs">
-                          {row?.attribute3_value}
-                        </TableCell>
+                        <TableCell className="h-6 px-2 py-1 text-xs">{row?.attribute3_value}</TableCell>
                       )}
 
                       {row.fiber_wavelengths.map((wavelength, idx) => (
                         <TableCell className="h-6 px-2 py-1 text-xs" key={idx}>
-                          <Input
-                            readOnly
-                            className="h-6 px-2 py-1 text-xs"
-                            value={wavelength.measured_value}
-                          />
+                          <Input readOnly className="h-6 px-2 py-1 text-xs" value={wavelength.measured_value} />
                         </TableCell>
                       ))}
                     </TableRow>
@@ -512,29 +346,15 @@ export default function QaDashboard() {
             </div>
             <div className="grid grid-cols-7 items-center gap-2">
               <label className="col-span-1" />
-              <label className="col-span-1 font-medium text-foreground">
-                Tube ID
-              </label>
-              <label className="col-span-1 font-medium text-foreground">
-                Tube OD
-              </label>
-              <label className="col-span-1 font-medium text-foreground">
-                FRP
-              </label>
-              <label className="col-span-1 font-medium text-foreground">
-                Inner
-              </label>
-              <label className="col-span-1 font-medium text-foreground">
-                Outer
-              </label>
-              <label className="col-span-1 font-medium text-foreground">
-                Cable Dia
-              </label>
+              <label className="col-span-1 font-medium text-foreground">Tube ID</label>
+              <label className="col-span-1 font-medium text-foreground">Tube OD</label>
+              <label className="col-span-1 font-medium text-foreground">FRP</label>
+              <label className="col-span-1 font-medium text-foreground">Inner</label>
+              <label className="col-span-1 font-medium text-foreground">Outer</label>
+              <label className="col-span-1 font-medium text-foreground">Cable Dia</label>
             </div>
             <div className="grid grid-cols-7 items-center gap-2">
-              <label className="col-span-1 font-medium text-foreground">
-                (Min)
-              </label>
+              <label className="col-span-1 font-medium text-foreground">(Min)</label>
               <Input readOnly className="col-span-1" />
               <Input readOnly className="col-span-1" />
               <Input readOnly className="col-span-1" />
@@ -543,9 +363,7 @@ export default function QaDashboard() {
               <Input readOnly className="col-span-1" />
             </div>
             <div className="grid grid-cols-7 items-center gap-2">
-              <label className="col-span-1 font-medium text-foreground">
-                (Max)
-              </label>
+              <label className="col-span-1 font-medium text-foreground">(Max)</label>
               <Input readOnly className="col-span-1" />
               <Input readOnly className="col-span-1" />
               <Input readOnly className="col-span-1" />
@@ -554,57 +372,38 @@ export default function QaDashboard() {
               <Input readOnly className="col-span-1" />
             </div>
             <div className="grid grid-cols-7 items-center gap-2">
-              <label className="col-span-1 font-medium text-foreground">
-                Remarks
-              </label>
-              <Input
-                className="col-span-6 w-full"
-                placeholder="OTDR Test Remarks"
-              />
+              <label className="col-span-1 font-medium text-foreground">Remarks</label>
+              <Input className="col-span-6 w-full" placeholder="OTDR Test Remarks" />
             </div>
           </div>
         </Card>
       </div>
       <div className="col-span-3 space-y-2">
         <Card className="relative h-full overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
-          <h2 className="absolute -top-2 bg-background text-sm font-semibold">
-            Physical Parameters
-          </h2>
+          <h2 className="absolute -top-2 bg-background text-sm font-semibold">Physical Parameters</h2>
           <div className="space-y-2">
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                IEM
-              </label>
+              <label className="col-span-3 font-medium text-foreground">IEM</label>
               <Input className="col-span-7" />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                OEM/Length of SFG (m)
-              </label>
+              <label className="col-span-3 font-medium text-foreground">OEM/Length of SFG (m)</label>
               <Input className="col-span-7" />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Inner Sheath (mm)
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Inner Sheath (mm)</label>
               <Input className="col-span-7" />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Outer Sheath (mm)
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Outer Sheath (mm)</label>
               <Input className="col-span-7" />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Cable Dia (mm)
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Cable Dia (mm)</label>
               <Input className="col-span-7" />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Stripability/Rib Separation
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Stripability/Rib Separation</label>
               <div className="col-span-7">
                 <Select defaultValue="OK">
                   <SelectTrigger className="w-full">
@@ -621,9 +420,7 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Visual Inspection
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Visual Inspection</label>
               <div className="col-span-7">
                 <Select defaultValue="OK">
                   <SelectTrigger className="w-full">
@@ -641,9 +438,7 @@ export default function QaDashboard() {
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <div className="col-span-5 grid grid-cols-5 items-center gap-2">
-                <label className="col-span-3 font-medium text-foreground">
-                  WPT
-                </label>
+                <label className="col-span-3 font-medium text-foreground">WPT</label>
                 <div className="col-span-2">
                   <Select defaultValue="OK">
                     <SelectTrigger className="w-full">
@@ -660,9 +455,7 @@ export default function QaDashboard() {
                 </div>
               </div>
               <div className="col-span-5 grid grid-cols-5 items-center gap-2">
-                <label className="col-span-3 font-medium text-foreground">
-                  Drip
-                </label>
+                <label className="col-span-3 font-medium text-foreground">Drip</label>
                 <div className="col-span-2">
                   <Select defaultValue="OK">
                     <SelectTrigger className="w-full">
@@ -680,9 +473,7 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Sheath Removal (R/LC)
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Sheath Removal (R/LC)</label>
               <div className="col-span-7">
                 <Select defaultValue="OK">
                   <SelectTrigger className="w-full">
@@ -699,21 +490,15 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Tube ID/OD (nm)
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Tube ID/OD (nm)</label>
               <Input className="col-span-7" />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                FRP Dia (nm)
-              </label>
+              <label className="col-span-3 font-medium text-foreground">FRP Dia (nm)</label>
               <Input className="col-span-7" />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Fiber Seg of Ribbon
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Fiber Seg of Ribbon</label>
               <div className="col-span-7">
                 <Select defaultValue="OK">
                   <SelectTrigger className="w-full">
@@ -730,9 +515,7 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Ribbon Print Qty
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Ribbon Print Qty</label>
               <div className="col-span-7">
                 <Select defaultValue="OK">
                   <SelectTrigger className="w-full">
@@ -749,9 +532,7 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Color of Fiber
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Color of Fiber</label>
               <div className="col-span-7">
                 <Select defaultValue="OK">
                   <SelectTrigger className="w-full">
@@ -768,9 +549,7 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Vernier No.
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Vernier No.</label>
               <div className="col-span-7">
                 <Select defaultValue="ABC-123S">
                   <SelectTrigger className="w-full">
@@ -787,9 +566,7 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Ribbon Rub Test
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Ribbon Rub Test</label>
               <div className="col-span-7">
                 <Select defaultValue="OK">
                   <SelectTrigger className="w-full">
@@ -806,9 +583,7 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Ribbon Stiffness
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Ribbon Stiffness</label>
               <div className="col-span-7">
                 <Select defaultValue="OK">
                   <SelectTrigger className="w-full">
@@ -825,9 +600,7 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Ribbon Separation
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Ribbon Separation</label>
               <div className="col-span-7">
                 <Select defaultValue="OK">
                   <SelectTrigger className="w-full">
@@ -844,9 +617,7 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
-              <label className="col-span-3 font-medium text-foreground">
-                Status
-              </label>
+              <label className="col-span-3 font-medium text-foreground">Status</label>
               <div className="col-span-7">
                 <Select defaultValue="PASS">
                   <SelectTrigger className="w-full">
@@ -862,17 +633,10 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-2 items-center gap-2">
-              <Button
-                variant="default"
-                className="col-span-1 h-8 w-full text-xs"
-              >
+              <Button variant="default" className="col-span-1 h-8 w-full text-xs">
                 Save Results <Save />
               </Button>
-              <Button
-                variant="secondary"
-                disabled
-                className="col-span-1 h-8 w-full text-xs"
-              >
+              <Button variant="secondary" disabled className="col-span-1 h-8 w-full text-xs">
                 Print Sticker <Printer />
               </Button>
             </div>
