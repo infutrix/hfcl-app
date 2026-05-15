@@ -155,8 +155,8 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">OTDR IP/Port</label>
               <div className="col-span-5 grid grid-cols-3 gap-2">
-                <Input className="col-span-2" placeholder="192.168.1.38" value={"192.168.1.38"} />
-                <Input className="col-span-1" placeholder="2283" value={"2283"} />
+                <Input readOnly className="col-span-2" placeholder="192.168.1.38" value={"192.168.1.38"} />
+                <Input readOnly className="col-span-1" placeholder="2283" value={"2283"} />
               </div>
               <Button
                 disabled={connectOtdr.isPending}
