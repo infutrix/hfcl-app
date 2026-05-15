@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import NotFound from "./app/NotFound"
 import UserDashboard from "./app/UserDashboard"
 import Login from "./app/Login"
-import QaDashboard from "./app/QaDashboard"
+import QaDashboard from "./app/QADashboard"
 
 const queryClient = new QueryClient()
 
