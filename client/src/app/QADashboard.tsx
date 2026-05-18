@@ -28,6 +28,7 @@ import {
   useSaveBatchCableProfileLink,
 } from "@/hooks/use-cable"
 import { useLogout, useMe } from "@/hooks/use-auth"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 export default function QaDashboard() {
   // states
@@ -36,6 +37,10 @@ export default function QaDashboard() {
   const [batch, setBatch] = useState("")
   const [cableProfile, setCableProfile] = useState("")
   const [batchCableProfileLinkId, setBatchCableProfileLinkId] = useState<number | undefined>(undefined)
+  const [selectedFilters, setSelectedFilters] = useState<{
+    attribute1_value?: string
+    attribute2_value?: string
+  }>({})
   // const [colorCoding, setColorCoding] = useState("")
 
   // queries
@@ -50,7 +55,8 @@ export default function QaDashboard() {
   const { data: currentUser } = useMe()
 
   // mutations
-  const { mutateAsync: saveBatchCableProfileLink } = useSaveBatchCableProfileLink()
+  const { mutateAsync: saveBatchCableProfileLink, isPending: isSaveBatchCableProfileLinkPending } =
+    useSaveBatchCableProfileLink()
   const connectOtdr = useConnectOtdr()
   const runSkippyMetricsWithImage = useRunSkippyMetricsWithImage()
   const handleStartTesting = async () => {
@@ -90,6 +96,34 @@ export default function QaDashboard() {
     () => otdr && sfgStage && batch && cableProfile,
     [otdr, sfgStage, batch, cableProfile]
   )
+
+  const uniqueAttribute1_values = useMemo(() => {
+    if (!batchFiberTestingData) return []
+    const uniqueValues = new Set(batchFiberTestingData.rows.map((row) => row.attribute1_value))
+    return Array.from(uniqueValues)
+  }, [batchFiberTestingData])
+
+  const uniqueAttribute2_values = useMemo(() => {
+    if (!batchFiberTestingData) return []
+    const uniqueValues = new Set(batchFiberTestingData.rows.map((row) => row.attribute2_value))
+    return Array.from(uniqueValues)
+  }, [batchFiberTestingData])
+
+  const selectedFiltersFiberTestingData = useMemo(() => {
+    if (!batchFiberTestingData) return null
+    return {
+      headers: batchFiberTestingData.headers,
+      rows: batchFiberTestingData.rows.filter((row) => {
+        const attribute1Match = selectedFilters.attribute1_value
+          ? row.attribute1_value === selectedFilters.attribute1_value
+          : true
+        const attribute2Match = selectedFilters.attribute2_value
+          ? row.attribute2_value === selectedFilters.attribute2_value
+          : true
+        return attribute1Match && attribute2Match
+      }),
+    }
+  }, [batchFiberTestingData, selectedFilters])
 
   async function handleSaveBatchCableProfileLink() {
     if (checkIfAllSelected) {
@@ -330,21 +364,17 @@ export default function QaDashboard() {
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">IOR</label>
-              <div className="col-span-2">
-                <label className="col-span-2 font-medium text-foreground">1310(nm)</label>
-              </div>
-              <div className="col-span-2">
-                <label className="col-span-2 font-medium text-foreground">1550(nm)</label>
-              </div>
-              <div className="col-span-2">
-                <label className="col-span-2 font-medium text-foreground">1625(nm)</label>
-              </div>
+              {selectedCableProfile?.wavelength_configs.map((config) => (
+                <div className="col-span-2">
+                  <label className="col-span-2 font-medium text-foreground">{config.wavelength}(nm)</label>
+                </div>
+              ))}
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">Fiber</label>
-              <Input className="col-span-2" />
-              <Input className="col-span-2" />
-              <Input className="col-span-2" />
+              {selectedCableProfile?.wavelength_configs.map((config) => (
+                <Input id={config.wavelength.toString()} className="col-span-2" />
+              ))}
               <Button
                 disabled={
                   otdrStatus?.state !== "connected" ||
@@ -376,13 +406,45 @@ export default function QaDashboard() {
             >
               {runSkippyMetricsWithImage.isPending ? "Testing..." : "Test"} <MonitorPlay />
             </Button>
-            {isBatchFiberTestingDataLoading && <Loader2 className="m-auto size-5 animate-spin" />}
-            {batchFiberTestingData && (
+            {(isBatchFiberTestingDataLoading || isSaveBatchCableProfileLinkPending) && (
+              <Loader2 className="m-auto size-5 animate-spin" />
+            )}
+            <div className="grid grid-cols-1 gap-2">
+              <div className="overflow-x-auto pb-1">
+                <ToggleGroup
+                  type="single"
+                  variant={"outline"}
+                  defaultValue={selectedFilters.attribute1_value}
+                  onValueChange={(value) => setSelectedFilters((prev) => ({ ...prev, attribute1_value: value }))}
+                >
+                  {uniqueAttribute1_values?.map((value, id) => (
+                    <ToggleGroupItem variant={"outline"} key={id} value={value} aria-label={`Toggle ${value}`}>
+                      {value}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+              <div className="overflow-x-auto pb-1">
+                <ToggleGroup
+                  variant={"outline"}
+                  type="single"
+                  defaultValue={selectedFilters.attribute2_value}
+                  onValueChange={(value) => setSelectedFilters((prev) => ({ ...prev, attribute2_value: value }))}
+                >
+                  {uniqueAttribute2_values?.map((value, id) => (
+                    <ToggleGroupItem variant={"outline"} key={id} value={value} aria-label={`Toggle ${value}`}>
+                      {value}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </div>
+            </div>
+            {selectedFiltersFiberTestingData && (
               <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
                 <Table className="border text-xs">
                   <TableHeader>
                     <TableRow className="sticky top-0 bg-blue-100 dark:bg-blue-900">
-                      {batchFiberTestingData?.headers.map((header) => (
+                      {selectedFiltersFiberTestingData?.headers.map((header) => (
                         <TableHead className="h-7 px-2 py-1 text-xs" key={header.key}>
                           {header.label}
                         </TableHead>
@@ -390,7 +452,7 @@ export default function QaDashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {batchFiberTestingData?.rows.map((row, i) => (
+                    {selectedFiltersFiberTestingData?.rows.map((row, i) => (
                       <TableRow key={i} className={i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950" : ""}>
                         <TableCell className="h-6 px-2 py-1 text-xs">{row.fiber_number}</TableCell>
 
