@@ -158,7 +158,12 @@ export default function QaDashboard() {
     if (uniqueAttribute1_values && uniqueAttribute1_values.length && !selectedFilters.attribute1_value) {
       setSelectedFilters((prev) => ({ ...prev, attribute1_value: uniqueAttribute1_values[0] }))
     }
-    if (uniqueAttribute2_values && uniqueAttribute2_values.length && !selectedFilters.attribute2_value) {
+    if (
+      uniqueAttribute2_values &&
+      selectedCableProfile?.colorProfile.cable_type === "IBR" &&
+      uniqueAttribute2_values.length &&
+      !selectedFilters.attribute2_value
+    ) {
       setSelectedFilters((prev) => ({ ...prev, attribute2_value: uniqueAttribute2_values[0] }))
     }
   }, [uniqueAttribute1_values, uniqueAttribute2_values])
@@ -444,21 +449,23 @@ export default function QaDashboard() {
                   ))}
                 </ToggleGroup>
               </div>
-              <div className="overflow-x-auto pb-1">
-                <ToggleGroup
-                  variant={"outline"}
-                  type="single"
-                  value={selectedFilters.attribute2_value}
-                  defaultValue={uniqueAttribute2_values?.[0]}
-                  onValueChange={(value) => setSelectedFilters((prev) => ({ ...prev, attribute2_value: value }))}
-                >
-                  {uniqueAttribute2_values?.map((value, id) => (
-                    <ToggleGroupItem variant={"outline"} key={id} value={value} aria-label={`Toggle ${value}`}>
-                      {value}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </div>
+              {selectedCableProfile?.colorProfile.cable_type === "IBR" && (
+                <div className="overflow-x-auto pb-1">
+                  <ToggleGroup
+                    variant={"outline"}
+                    type="single"
+                    value={selectedFilters.attribute2_value}
+                    defaultValue={uniqueAttribute2_values?.[0]}
+                    onValueChange={(value) => setSelectedFilters((prev) => ({ ...prev, attribute2_value: value }))}
+                  >
+                    {uniqueAttribute2_values?.map((value, id) => (
+                      <ToggleGroupItem variant={"outline"} key={id} value={value} aria-label={`Toggle ${value}`}>
+                        {value}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </div>
+              )}
             </div>
             {selectedFiltersFiberTestingData && (
               <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
