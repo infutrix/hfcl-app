@@ -376,7 +376,7 @@ export default function QaDashboard() {
             >
               {runSkippyMetricsWithImage.isPending ? "Testing..." : "Test"} <MonitorPlay />
             </Button>
-            {isBatchFiberTestingDataLoading && <Loader2 className="m-auto animate-spin" />}
+            {isBatchFiberTestingDataLoading && <Loader2 className="m-auto size-5 animate-spin" />}
             {batchFiberTestingData && (
               <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
                 <Table className="border text-xs">
