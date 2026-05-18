@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Check, EthernetPort, LogIn, LogOut, MonitorPlay, Printer, Save } from "lucide-react"
+import { EthernetPort, Loader2, LogOut, MonitorPlay, Printer, Save } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import {
   useConnectOtdr,
@@ -43,7 +43,9 @@ export default function QaDashboard() {
   const { data: batches, isPending: isBatchesPending } = useGetAllBatches()
   const { data: sfgStages, isPending: isSfgStagesPending } = useGetAllSfgStages()
   const { data: cableProfiles, isPending: isCableProfilesPending } = useGetAllCableProfiles()
-  const { data: batchFiberTestingData } = useGetBatchFiberTestingData(batchCableProfileLinkId ?? 0)
+  const { data: batchFiberTestingData, isLoading: isBatchFiberTestingDataLoading } = useGetBatchFiberTestingData(
+    batchCableProfileLinkId ?? 0
+  )
   const { data: otdrStatus, isLoading: isStatusLoading, refetch: refetchOtdrStatus } = useGetOtdrConnectionStatus()
   const { data: currentUser } = useMe()
 
@@ -344,7 +346,12 @@ export default function QaDashboard() {
               <Input className="col-span-2" />
               <Input className="col-span-2" />
               <Button
-                disabled={otdrStatus?.state !== "connected" || !checkIfAllSelected}
+                disabled={
+                  otdrStatus?.state !== "connected" ||
+                  !checkIfAllSelected ||
+                  runSkippyMetricsWithImage.isPending ||
+                  isBatchFiberTestingDataLoading
+                }
                 className="col-span-2 h-8 w-full text-xs"
               >
                 Test <MonitorPlay />
@@ -359,76 +366,88 @@ export default function QaDashboard() {
           <div className="space-y-2">
             <Button
               onClick={handleStartTesting}
-              disabled={!checkIfAllSelected || runSkippyMetricsWithImage.isPending}
+              disabled={
+                otdrStatus?.state !== "connected" ||
+                !checkIfAllSelected ||
+                runSkippyMetricsWithImage.isPending ||
+                isBatchFiberTestingDataLoading
+              }
               className="h-8 w-full text-xs"
             >
               {runSkippyMetricsWithImage.isPending ? "Testing..." : "Test"} <MonitorPlay />
             </Button>
-            <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
-              <Table className="border text-xs">
-                <TableHeader>
-                  <TableRow className="sticky top-0 bg-blue-100 dark:bg-blue-900">
-                    {batchFiberTestingData?.headers.map((header) => (
-                      <TableHead className="h-7 px-2 py-1 text-xs" key={header.key}>
-                        {header.label}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {batchFiberTestingData?.rows.map((row, i) => (
-                    <TableRow key={i} className={i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950" : ""}>
-                      <TableCell className="h-6 px-2 py-1 text-xs">{row.fiber_number}</TableCell>
-
-                      <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute1_value}</TableCell>
-
-                      <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute2_value}</TableCell>
-
-                      {row?.attribute3_value && (
-                        <TableCell className="h-6 px-2 py-1 text-xs">{row?.attribute3_value}</TableCell>
-                      )}
-
-                      {row.fiber_wavelengths.map((wavelength, idx) => (
-                        <TableCell className="h-6 px-2 py-1 text-xs" key={idx}>
-                          <Input readOnly className="h-6 px-2 py-1 text-xs" value={wavelength.measured_value} />
-                        </TableCell>
+            {isBatchFiberTestingDataLoading && <Loader2 className="m-auto animate-spin" />}
+            {batchFiberTestingData && (
+              <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
+                <Table className="border text-xs">
+                  <TableHeader>
+                    <TableRow className="sticky top-0 bg-blue-100 dark:bg-blue-900">
+                      {batchFiberTestingData?.headers.map((header) => (
+                        <TableHead className="h-7 px-2 py-1 text-xs" key={header.key}>
+                          {header.label}
+                        </TableHead>
                       ))}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="grid grid-cols-7 items-center gap-2">
-              <label className="col-span-1" />
-              <label className="col-span-1 font-medium text-foreground">Tube ID</label>
-              <label className="col-span-1 font-medium text-foreground">Tube OD</label>
-              <label className="col-span-1 font-medium text-foreground">FRP</label>
-              <label className="col-span-1 font-medium text-foreground">Inner</label>
-              <label className="col-span-1 font-medium text-foreground">Outer</label>
-              <label className="col-span-1 font-medium text-foreground">Cable Dia</label>
-            </div>
-            <div className="grid grid-cols-7 items-center gap-2">
-              <label className="col-span-1 font-medium text-foreground">(Min)</label>
-              <Input readOnly className="col-span-1" />
-              <Input readOnly className="col-span-1" />
-              <Input readOnly className="col-span-1" />
-              <Input readOnly className="col-span-1" />
-              <Input readOnly className="col-span-1" />
-              <Input readOnly className="col-span-1" />
-            </div>
-            <div className="grid grid-cols-7 items-center gap-2">
-              <label className="col-span-1 font-medium text-foreground">(Max)</label>
-              <Input readOnly className="col-span-1" />
-              <Input readOnly className="col-span-1" />
-              <Input readOnly className="col-span-1" />
-              <Input readOnly className="col-span-1" />
-              <Input readOnly className="col-span-1" />
-              <Input readOnly className="col-span-1" />
-            </div>
-            <div className="grid grid-cols-7 items-center gap-2">
-              <label className="col-span-1 font-medium text-foreground">Remarks</label>
-              <Input className="col-span-6 w-full" placeholder="OTDR Test Remarks" />
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {batchFiberTestingData?.rows.map((row, i) => (
+                      <TableRow key={i} className={i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950" : ""}>
+                        <TableCell className="h-6 px-2 py-1 text-xs">{row.fiber_number}</TableCell>
+
+                        <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute1_value}</TableCell>
+
+                        <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute2_value}</TableCell>
+
+                        {row?.attribute3_value && (
+                          <TableCell className="h-6 px-2 py-1 text-xs">{row?.attribute3_value}</TableCell>
+                        )}
+
+                        {row.fiber_wavelengths.map((wavelength, idx) => (
+                          <TableCell className="h-6 px-2 py-1 text-xs" key={idx}>
+                            <Input readOnly className="h-6 px-2 py-1 text-xs" value={wavelength.measured_value} />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+            {cableProfile && (
+              <>
+                <div className="grid grid-cols-7 items-center gap-2">
+                  <label className="col-span-1" />
+                  <label className="col-span-1 font-medium text-foreground">Tube ID</label>
+                  <label className="col-span-1 font-medium text-foreground">Tube OD</label>
+                  <label className="col-span-1 font-medium text-foreground">FRP</label>
+                  <label className="col-span-1 font-medium text-foreground">Inner</label>
+                  <label className="col-span-1 font-medium text-foreground">Outer</label>
+                  <label className="col-span-1 font-medium text-foreground">Cable Dia</label>
+                </div>
+                <div className="grid grid-cols-7 items-center gap-2">
+                  <label className="col-span-1 font-medium text-foreground">(Min)</label>
+                  <Input readOnly className="col-span-1" />
+                  <Input readOnly className="col-span-1" />
+                  <Input readOnly className="col-span-1" />
+                  <Input readOnly className="col-span-1" />
+                  <Input readOnly className="col-span-1" />
+                  <Input readOnly className="col-span-1" />
+                </div>
+                <div className="grid grid-cols-7 items-center gap-2">
+                  <label className="col-span-1 font-medium text-foreground">(Max)</label>
+                  <Input readOnly className="col-span-1" />
+                  <Input readOnly className="col-span-1" />
+                  <Input readOnly className="col-span-1" />
+                  <Input readOnly className="col-span-1" />
+                  <Input readOnly className="col-span-1" />
+                  <Input readOnly className="col-span-1" />
+                </div>
+                <div className="grid grid-cols-7 items-center gap-2">
+                  <label className="col-span-1 font-medium text-foreground">Remarks</label>
+                  <Input className="col-span-6 w-full" placeholder="OTDR Test Remarks" />
+                </div>
+              </>
+            )}
           </div>
         </Card>
       </div>
