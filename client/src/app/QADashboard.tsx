@@ -140,9 +140,28 @@ export default function QaDashboard() {
     }
   }
 
+  // automatically save link between selected batch, cable profile, sfg stage and otdr device when any of them changes and all are selected
   useEffect(() => {
     handleSaveBatchCableProfileLink()
   }, [otdr, sfgStage, batch, cableProfile])
+
+  // initialize selected filters to first available value (index 0) when lists load
+  useEffect(() => {
+    if (uniqueAttribute1_values && uniqueAttribute1_values.length && !selectedFilters.attribute1_value) {
+      setSelectedFilters((prev) => ({ ...prev, attribute1_value: uniqueAttribute1_values[0] }))
+    }
+    if (uniqueAttribute2_values && uniqueAttribute2_values.length && !selectedFilters.attribute2_value) {
+      setSelectedFilters((prev) => ({ ...prev, attribute2_value: uniqueAttribute2_values[0] }))
+    }
+  }, [uniqueAttribute1_values, uniqueAttribute2_values])
+
+  // clear filters when batch changes
+  useEffect(() => {
+    setSelectedFilters({
+      attribute1_value: undefined,
+      attribute2_value: undefined,
+    })
+  }, [cableProfile])
 
   return (
     <div className="grid grid-cols-12 gap-2 p-2">
@@ -414,7 +433,8 @@ export default function QaDashboard() {
                 <ToggleGroup
                   type="single"
                   variant={"outline"}
-                  defaultValue={selectedFilters.attribute1_value}
+                  value={selectedFilters.attribute1_value}
+                  defaultValue={uniqueAttribute1_values?.[0]}
                   onValueChange={(value) => setSelectedFilters((prev) => ({ ...prev, attribute1_value: value }))}
                 >
                   {uniqueAttribute1_values?.map((value, id) => (
@@ -428,7 +448,8 @@ export default function QaDashboard() {
                 <ToggleGroup
                   variant={"outline"}
                   type="single"
-                  defaultValue={selectedFilters.attribute2_value}
+                  value={selectedFilters.attribute2_value}
+                  defaultValue={uniqueAttribute2_values?.[0]}
                   onValueChange={(value) => setSelectedFilters((prev) => ({ ...prev, attribute2_value: value }))}
                 >
                   {uniqueAttribute2_values?.map((value, id) => (
