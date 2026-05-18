@@ -145,6 +145,14 @@ export default function QaDashboard() {
     handleSaveBatchCableProfileLink()
   }, [otdr, sfgStage, batch, cableProfile])
 
+  // clear filters when batch changes
+  useEffect(() => {
+    setSelectedFilters({
+      attribute1_value: undefined,
+      attribute2_value: undefined,
+    })
+  }, [batchFiberTestingData])
+
   // initialize selected filters to first available value (index 0) when lists load
   useEffect(() => {
     if (uniqueAttribute1_values && uniqueAttribute1_values.length && !selectedFilters.attribute1_value) {
@@ -155,19 +163,11 @@ export default function QaDashboard() {
     }
   }, [uniqueAttribute1_values, uniqueAttribute2_values])
 
-  // clear filters when batch changes
-  useEffect(() => {
-    setSelectedFilters({
-      attribute1_value: undefined,
-      attribute2_value: undefined,
-    })
-  }, [cableProfile])
-
   return (
-    <div className="grid grid-cols-12 gap-2 p-2">
+    <div className="grid grid-cols-12 gap-2 px-2 py-4">
       <div className="col-span-4 space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="mb-8 flex justify-between">
+          <div className="flex flex-col gap-2">
             <h1 className="text-lg font-bold">
               Hai{" "}
               <span className="underline">
@@ -175,10 +175,10 @@ export default function QaDashboard() {
               </span>
               👋
             </h1>
-            <Badge className="text-xs">{currentUser?.userRole.role}</Badge>
+            <Badge className="bg-green-600 text-xs">{currentUser?.userRole.role}</Badge>
           </div>
-          <Button variant="default" size="icon" onClick={logout}>
-            <LogOut size={16} />
+          <Button variant="destructive" onClick={logout}>
+            Logout <LogOut size={16} />
           </Button>
         </div>
         <Card className="relative overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
