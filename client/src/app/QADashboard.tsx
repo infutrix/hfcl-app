@@ -334,7 +334,7 @@ export default function QaDashboard() {
             {selectedBatch && (
               <div className="grid grid-cols-10 items-center gap-2">
                 <label className="col-span-2 font-medium text-foreground">Customer</label>
-                <Input className="col-span-8" value={selectedBatch?.customer.name} />
+                <Input readOnly className="col-span-8" value={selectedBatch?.customer.name} />
               </div>
             )}
             <div className="grid grid-cols-10 items-center gap-2">
