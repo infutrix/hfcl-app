@@ -60,14 +60,14 @@ export default function QaDashboard() {
   const connectOtdr = useConnectOtdr()
   const runSkippyMetricsWithImage = useRunSkippyMetricsWithImage()
   const handleStartTesting = async () => {
-    await runSkippyMetricsWithImage.mutateAsync({ timeoutMs: 10000 })
+    await runSkippyMetricsWithImage.mutateAsync({ timeoutMs: 10000, developerMode: import.meta.env.DEV })
   }
   const handleConnect = async () => {
-    await connectOtdr.mutateAsync({ connectionType: "connect" })
+    await connectOtdr.mutateAsync({ connectionType: "connect", developerMode: import.meta.env.DEV })
     await refetchOtdrStatus()
   }
   const handleDisconnect = async () => {
-    await connectOtdr.mutateAsync({ connectionType: "disconnect" })
+    await connectOtdr.mutateAsync({ connectionType: "disconnect", developerMode: import.meta.env.DEV })
     await refetchOtdrStatus()
   }
   const logout = useLogout()

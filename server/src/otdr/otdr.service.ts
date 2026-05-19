@@ -80,6 +80,10 @@ export class OtdrService implements OnModuleDestroy {
   async connection(createConnectionDto: CreateConnectionDto) {
     // Allow simulating connection state changes in developer mode without affecting actual OTDR connection
     if (createConnectionDto.developerMode) {
+      this.state =
+        createConnectionDto.connectionType === 'connect'
+          ? 'connected'
+          : 'disconnected';
       return {
         message: 'Developer mode: Simulated OTDR connection state change.',
         status: {

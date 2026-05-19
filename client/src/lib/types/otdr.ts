@@ -1,11 +1,9 @@
 import z from "zod"
 
-export const CreateOtdrConnectionSchema = z.object({
-  connectionType: z.enum(["connect", "disconnect"]),
-})
-export type CreateOtdrConnectionInput = z.infer<
-  typeof CreateOtdrConnectionSchema
->
+export type CreateOtdrConnectionInput = {
+  connectionType: "connect" | "disconnect"
+  developerMode?: boolean
+}
 
 export type OtdrConnesctionResponse = {
   message: string
@@ -32,6 +30,7 @@ export type SkippyCommandResponse = {
 
 export type RunSkippyMetricsWithImageInput = {
   timeoutMs?: number
+  developerMode?: boolean
 }
 
 export type IbrColorPrediction = {
