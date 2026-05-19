@@ -168,6 +168,19 @@ export default function QaDashboard() {
     }
   }, [uniqueAttribute1_values, uniqueAttribute2_values])
 
+  console.log({
+    colors: {
+      STRAND: runSkippyMetricsWithImage.data?.colorPrediction.strand?.color,
+      RIBBON: `R${runSkippyMetricsWithImage.data?.colorPrediction.ribbon?.markings_score}`,
+      FIBER: runSkippyMetricsWithImage.data?.colorPrediction.fiber?.color,
+    },
+    losses: {
+      "1310": runSkippyMetricsWithImage.data?.loss[1310],
+      "1550": runSkippyMetricsWithImage.data?.loss[1550],
+      "1625": runSkippyMetricsWithImage.data?.loss[1625],
+    },
+  })
+
   return (
     <div className="grid grid-cols-12 gap-2 px-2 py-4">
       <div className="col-span-4 space-y-2">
@@ -437,7 +450,6 @@ export default function QaDashboard() {
               <div className="overflow-x-auto pb-1">
                 <ToggleGroup
                   type="single"
-                  variant={"outline"}
                   value={selectedFilters.attribute1_value}
                   defaultValue={uniqueAttribute1_values?.[0]}
                   onValueChange={(value) => setSelectedFilters((prev) => ({ ...prev, attribute1_value: value }))}
@@ -452,7 +464,6 @@ export default function QaDashboard() {
               {selectedCableProfile?.colorProfile.cable_type === "IBR" && (
                 <div className="overflow-x-auto pb-1">
                   <ToggleGroup
-                    variant={"outline"}
                     type="single"
                     value={selectedFilters.attribute2_value}
                     defaultValue={uniqueAttribute2_values?.[0]}
