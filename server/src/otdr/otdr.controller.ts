@@ -28,7 +28,7 @@ export class OtdrController {
     @Body() runSkippyMetricsWithImageDto: RunSkippyMetricsWithImageDto,
   ) {
     return this.otdrService.runSkippyMetricsWithImage(
-      runSkippyMetricsWithImageDto.timeoutMs,
+      runSkippyMetricsWithImageDto,
     );
   }
 }

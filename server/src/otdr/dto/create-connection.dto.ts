@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsIn,
   IsInt,
   IsOptional,
@@ -12,6 +13,10 @@ import {
 export class CreateConnectionDto {
   @IsIn(['connect', 'disconnect'])
   connectionType: 'connect' | 'disconnect';
+
+  @IsBoolean()
+  @IsOptional()
+  developerMode?: boolean;
 
   @IsOptional()
   @IsString()

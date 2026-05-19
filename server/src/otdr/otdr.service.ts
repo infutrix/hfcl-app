@@ -11,6 +11,7 @@ import { Socket } from 'net';
 import { mkdir, writeFile } from 'fs/promises';
 import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
+import { RunSkippyMetricsWithImageDto } from './dto/run-skippy-metrics-with-image.dto';
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
@@ -77,6 +78,27 @@ export class OtdrService implements OnModuleDestroy {
   private commandChain: Promise<void> = Promise.resolve();
 
   async connection(createConnectionDto: CreateConnectionDto) {
+    // Allow simulating connection state changes in developer mode without affecting actual OTDR connection
+    if (createConnectionDto.developerMode) {
+      return {
+        message: 'Developer mode: Simulated OTDR connection state change.',
+        status: {
+          state:
+            createConnectionDto.connectionType === 'connect'
+              ? 'connected'
+              : 'disconnected',
+          host: createConnectionDto.host ?? this.config.host,
+          port: createConnectionDto.port ?? this.config.port,
+          connectTimeoutMs:
+            createConnectionDto.connectTimeoutMs ??
+            this.config.connectTimeoutMs,
+          commandTimeoutMs:
+            createConnectionDto.commandTimeoutMs ??
+            this.config.commandTimeoutMs,
+        },
+      };
+    }
+
     if (createConnectionDto.connectionType === 'connect') {
       return this.connect(createConnectionDto);
     }
@@ -111,12 +133,89 @@ export class OtdrService implements OnModuleDestroy {
     };
   }
 
-  async runSkippyMetricsWithImage(timeoutMs?: number) {
+  async runSkippyMetricsWithImage(
+    runSkippyMetricsWithImageDto: RunSkippyMetricsWithImageDto,
+  ) {
+    const { timeoutMs, developerMode } = runSkippyMetricsWithImageDto;
+    const runId = `${Date.now()}-${randomUUID()}`;
+
+    if (developerMode) {
+      return {
+        message: 'Skippy metrics with image executed successfully.',
+        runId,
+        loss: {
+          '1310': 0.15,
+          '1550': 0.25,
+          '1625': 0.35,
+        },
+        readiness: {
+          ready: true,
+          attempts: 1,
+          raw: 'INITiate? response',
+        },
+        colorPrediction: {
+          rois: {
+            ribbon: [1521, 1560, 3674, 2466],
+            fiber: [720, 1754, 1447, 2481],
+            strand: [5071, 1747, 5713, 2381],
+          },
+          fiber: {
+            color: 'Blue',
+            confidence: 0.9761709570884705,
+            top3: [
+              {
+                name: 'Blue',
+                conf: 0.9761709570884705,
+              },
+              {
+                name: 'Yellow',
+                conf: 0.02356698177754879,
+              },
+              {
+                name: 'Green',
+                conf: 0.000038417812902480364,
+              },
+            ],
+          },
+          ribbon: {
+            markings_score: 1,
+          },
+          strand: {
+            color: 'White',
+            confidence: 1,
+            top3: [
+              {
+                name: 'White',
+                conf: 1,
+              },
+              {
+                name: 'Pink-Olive',
+                conf: 6.640591632134374e-9,
+              },
+              {
+                name: 'Slate',
+                conf: 2.173974777974763e-9,
+              },
+            ],
+          },
+          status: 'success',
+          validation: {
+            status: 'failed',
+            error:
+              'Fiber Color Violation at DSC09178.JPG: Olive is not in the allowed list',
+          },
+        },
+        savedFiles: {
+          image: 'N/A in developer mode',
+          record: 'N/A in developer mode',
+        },
+      };
+    }
+
     const image = await this.fetchCapturedImage();
 
     await mkdir(this.runStorageDir, { recursive: true });
 
-    const runId = `${Date.now()}-${randomUUID()}`;
     const imageExtension = this.resolveImageExtension(
       image.originalname,
       image.mimetype,
@@ -140,31 +239,10 @@ export class OtdrService implements OnModuleDestroy {
         this.lossAt1625Command,
         timeoutMs,
       );
-      //   const bCursorResponse = await this.sendCommand(
-      //     this.bCursorCommand,
-      //     timeoutMs,
-      //   );
-      //   const aCursorResponse = await this.sendCommand(
-      //     this.aCursorCommand,
-      //     timeoutMs,
-      //   );
-      //   const iorResponse = await this.sendCommand(
-      //     this.iorAt1310Command,
-      //     timeoutMs,
-      //   );
 
       const lossValue1310 = this.extractFirstNumber(lossResponse1310);
       const lossValue1550 = this.extractFirstNumber(lossResponse1550);
       const lossValue1625 = this.extractFirstNumber(lossResponse1625);
-
-      // const bCursor = this.extractFirstNumber(bCursorResponse);
-      // const aCursor = this.extractFirstNumber(aCursorResponse);
-      // const iorValue = this.extractFirstNumber(iorResponse);
-
-      // const length =
-      //   aCursor !== null && bCursor !== null
-      //     ? Math.abs(bCursor - aCursor)
-      //     : null;
 
       return {
         readiness: readyCheck,
@@ -641,3 +719,25 @@ export class OtdrService implements OnModuleDestroy {
     });
   }
 }
+
+//   const bCursorResponse = await this.sendCommand(
+//     this.bCursorCommand,
+//     timeoutMs,
+//   );
+//   const aCursorResponse = await this.sendCommand(
+//     this.aCursorCommand,
+//     timeoutMs,
+//   );
+//   const iorResponse = await this.sendCommand(
+//     this.iorAt1310Command,
+//     timeoutMs,
+//   );
+
+// const bCursor = this.extractFirstNumber(bCursorResponse);
+// const aCursor = this.extractFirstNumber(aCursorResponse);
+// const iorValue = this.extractFirstNumber(iorResponse);
+
+// const length =
+//   aCursor !== null && bCursor !== null
+//     ? Math.abs(bCursor - aCursor)
+//     : null;
