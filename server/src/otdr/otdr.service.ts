@@ -140,8 +140,17 @@ export class OtdrService implements OnModuleDestroy {
   async runSkippyMetricsWithImage(
     runSkippyMetricsWithImageDto: RunSkippyMetricsWithImageDto,
   ) {
-    const { timeoutMs, developerMode } = runSkippyMetricsWithImageDto;
+    const { timeoutMs, developerMode, testAt } = runSkippyMetricsWithImageDto;
     const runId = `${Date.now()}-${randomUUID()}`;
+    const loss: {
+      '1310'?: number | null;
+      '1550'?: number | null;
+      '1625'?: number | null;
+    } = {
+      '1310': null,
+      '1550': null,
+      '1625': null,
+    };
 
     if (developerMode) {
       return {
@@ -231,30 +240,34 @@ export class OtdrService implements OnModuleDestroy {
 
     const metricsResult = await this.enqueueCommand(async () => {
       const readyCheck = await this.waitUntilOtdrReady(timeoutMs);
-      const lossResponse1310 = await this.sendCommand(
-        this.lossAt1310Command,
-        timeoutMs,
-      );
-      const lossResponse1550 = await this.sendCommand(
-        this.lossAt1550Command,
-        timeoutMs,
-      );
-      const lossResponse1625 = await this.sendCommand(
-        this.lossAt1625Command,
-        timeoutMs,
-      );
-
-      const lossValue1310 = this.extractFirstNumber(lossResponse1310);
-      const lossValue1550 = this.extractFirstNumber(lossResponse1550);
-      const lossValue1625 = this.extractFirstNumber(lossResponse1625);
+      if (testAt['1310']) {
+        const lossResponse1310 = await this.sendCommand(
+          this.lossAt1310Command,
+          timeoutMs,
+        );
+        const lossValue1310 = this.extractFirstNumber(lossResponse1310);
+        loss['1310'] = lossValue1310;
+      }
+      if (testAt['1550']) {
+        const lossResponse1550 = await this.sendCommand(
+          this.lossAt1550Command,
+          timeoutMs,
+        );
+        const lossValue1550 = this.extractFirstNumber(lossResponse1550);
+        loss['1550'] = lossValue1550;
+      }
+      if (testAt['1625']) {
+        const lossResponse1625 = await this.sendCommand(
+          this.lossAt1625Command,
+          timeoutMs,
+        );
+        const lossValue1625 = this.extractFirstNumber(lossResponse1625);
+        loss['1625'] = lossValue1625;
+      }
 
       return {
         readiness: readyCheck,
-        loss: {
-          '1310': lossValue1310,
-          '1550': lossValue1550,
-          '1625': lossValue1625,
-        },
+        loss: loss,
       };
     });
 

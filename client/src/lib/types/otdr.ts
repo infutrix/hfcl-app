@@ -31,6 +31,11 @@ export type SkippyCommandResponse = {
 export type RunSkippyMetricsWithImageInput = {
   timeoutMs?: number
   developerMode?: boolean
+  testAt: {
+    "1310"?: boolean
+    "1550"?: boolean
+    "1625"?: boolean
+  }
 }
 
 export type IbrColorPrediction = {

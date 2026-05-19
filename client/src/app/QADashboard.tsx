@@ -63,23 +63,43 @@ export default function QaDashboard() {
   const connectOtdr = useConnectOtdr()
   const runSkippyMetricsWithImage = useRunSkippyMetricsWithImage()
   const handleStartTesting = async () => {
-    const result = await runSkippyMetricsWithImage.mutateAsync({ timeoutMs: 10000, developerMode: import.meta.env.DEV })
+    const result = await runSkippyMetricsWithImage.mutateAsync({
+      timeoutMs: 10000,
+      testAt: {
+        "1310": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1310),
+        "1550": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1550),
+        "1625": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1625),
+      },
+      developerMode: import.meta.env.DEV,
+    })
     if (batchCableProfileLinkId) {
       await saveBatchFiberTestingData.mutateAsync({
         batchCableProfileLinkId,
         fiber_wavelengths: [
-          {
-            wavelength_nm: "1310",
-            measured_value: result.loss[1310]?.toString() || "",
-          },
-          {
-            wavelength_nm: "1550",
-            measured_value: result.loss[1550]?.toString() || "",
-          },
-          {
-            wavelength_nm: "1625",
-            measured_value: result.loss[1625]?.toString() || "",
-          },
+          ...(result.loss[1310] !== undefined
+            ? [
+                {
+                  wavelength_nm: "1310",
+                  measured_value: result.loss[1310]?.toString() || "",
+                },
+              ]
+            : []),
+          ...(result.loss[1550] !== undefined
+            ? [
+                {
+                  wavelength_nm: "1550",
+                  measured_value: result.loss[1550]?.toString() || "",
+                },
+              ]
+            : []),
+          ...(result.loss[1625] !== undefined
+            ? [
+                {
+                  wavelength_nm: "1625",
+                  measured_value: result.loss[1625]?.toString() || "",
+                },
+              ]
+            : []),
         ],
         ai_response: JSON.stringify(result.colorPrediction),
       })
