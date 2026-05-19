@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import ScrollContainer from "react-indiana-drag-scroll"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Select,
@@ -447,7 +448,7 @@ export default function QaDashboard() {
               <Loader2 className="m-auto size-5 animate-spin" />
             )}
             <div className="grid grid-cols-1 gap-2">
-              <div className="overflow-x-auto pb-1">
+              <ScrollContainer hideScrollbars={false} className="overflow-x-auto pb-1">
                 <ToggleGroup
                   type="single"
                   value={selectedFilters.attribute1_value}
@@ -460,9 +461,9 @@ export default function QaDashboard() {
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
-              </div>
+              </ScrollContainer>
               {selectedCableProfile?.colorProfile.cable_type === "IBR" && (
-                <div className="overflow-x-auto pb-1">
+                <ScrollContainer hideScrollbars={false} className="overflow-x-auto pb-1">
                   <ToggleGroup
                     type="single"
                     value={selectedFilters.attribute2_value}
@@ -475,7 +476,7 @@ export default function QaDashboard() {
                       </ToggleGroupItem>
                     ))}
                   </ToggleGroup>
-                </div>
+                </ScrollContainer>
               )}
             </div>
             {selectedFiltersFiberTestingData && (
