@@ -5,6 +5,7 @@ import type {
   BatchCableProfileLinkResponse,
   BatchFiberTestingData,
   CableProfile,
+  SaveBatchFiberTestingDataPayload,
   SfgStage,
 } from "../types/cable"
 
@@ -21,17 +22,15 @@ export default class Cable {
     return await apiCms.get("/cable-profiles")
   }
 
-  static async saveBatchCableProfileLink(
-    data: BatchCableProfileLinkPayload
-  ): Promise<BatchCableProfileLinkResponse> {
+  static async saveBatchCableProfileLink(data: BatchCableProfileLinkPayload): Promise<BatchCableProfileLinkResponse> {
     return await apiCms.post("/batch-cable-profiles", data)
   }
 
-  static async getBatchFiberTestingData(
-    batchCableProfileLinkId: number
-  ): Promise<BatchFiberTestingData> {
-    return await apiCms.get(
-      `/batch-fiber-testing/saved/${batchCableProfileLinkId}`
-    )
+  static async getBatchFiberTestingData(batchCableProfileLinkId: number): Promise<BatchFiberTestingData> {
+    return await apiCms.get(`/batch-fiber-testing/saved/${batchCableProfileLinkId}`)
+  }
+
+  static async saveBatchFiberTestingData(data: SaveBatchFiberTestingDataPayload): Promise<void> {
+    await apiCms.put(`/batch-fiber-testing/${data.batchCableProfileLinkId}`, data)
   }
 }

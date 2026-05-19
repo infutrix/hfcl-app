@@ -5,10 +5,11 @@ import type {
   BatchCableProfileLinkResponse,
   BatchFiberTestingData,
   CableProfile,
+  SaveBatchFiberTestingDataPayload,
   SfgStage,
 } from "@/lib/types/cable"
 import type { ApiErrorResponse } from "@/lib/types/common"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 export const useGetAllBatches = () => {
   return useQuery<Batch[], ApiErrorResponse>({
@@ -37,9 +38,7 @@ export const useGetAllCableProfiles = () => {
   })
 }
 
-export const useGetBatchFiberTestingData = (
-  batchCableProfileLinkId: number
-) => {
+export const useGetBatchFiberTestingData = (batchCableProfileLinkId: number) => {
   return useQuery<BatchFiberTestingData, ApiErrorResponse>({
     queryFn: () => Cable.getBatchFiberTestingData(batchCableProfileLinkId),
     queryKey: ["batch-fiber-testing-data", batchCableProfileLinkId],
@@ -50,11 +49,19 @@ export const useGetBatchFiberTestingData = (
 }
 
 export const useSaveBatchCableProfileLink = () => {
-  return useMutation<
-    BatchCableProfileLinkResponse,
-    ApiErrorResponse,
-    BatchCableProfileLinkPayload
-  >({
+  return useMutation<BatchCableProfileLinkResponse, ApiErrorResponse, BatchCableProfileLinkPayload>({
     mutationFn: Cable.saveBatchCableProfileLink,
+  })
+}
+
+export const useSaveBatchFiberTestingData = () => {
+  const queryClient = useQueryClient()
+  return useMutation<void, ApiErrorResponse, SaveBatchFiberTestingDataPayload>({
+    mutationFn: Cable.saveBatchFiberTestingData,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["batch-fiber-testing-data"],
+      })
+    },
   })
 }

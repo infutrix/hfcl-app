@@ -27,6 +27,7 @@ import {
   useGetAllSfgStages,
   useGetBatchFiberTestingData,
   useSaveBatchCableProfileLink,
+  useSaveBatchFiberTestingData,
 } from "@/hooks/use-cable"
 import { useLogout, useMe } from "@/hooks/use-auth"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -58,10 +59,31 @@ export default function QaDashboard() {
   // mutations
   const { mutateAsync: saveBatchCableProfileLink, isPending: isSaveBatchCableProfileLinkPending } =
     useSaveBatchCableProfileLink()
+  const saveBatchFiberTestingData = useSaveBatchFiberTestingData()
   const connectOtdr = useConnectOtdr()
   const runSkippyMetricsWithImage = useRunSkippyMetricsWithImage()
   const handleStartTesting = async () => {
-    await runSkippyMetricsWithImage.mutateAsync({ timeoutMs: 10000, developerMode: import.meta.env.DEV })
+    const result = await runSkippyMetricsWithImage.mutateAsync({ timeoutMs: 10000, developerMode: import.meta.env.DEV })
+    if (batchCableProfileLinkId) {
+      await saveBatchFiberTestingData.mutateAsync({
+        batchCableProfileLinkId,
+        fiber_wavelengths: [
+          {
+            wavelength_nm: "1310",
+            measured_value: result.loss[1310]?.toString() || "",
+          },
+          {
+            wavelength_nm: "1550",
+            measured_value: result.loss[1550]?.toString() || "",
+          },
+          {
+            wavelength_nm: "1625",
+            measured_value: result.loss[1625]?.toString() || "",
+          },
+        ],
+        ai_response: JSON.stringify(result.colorPrediction),
+      })
+    }
   }
   const handleConnect = async () => {
     await connectOtdr.mutateAsync({ connectionType: "connect", developerMode: import.meta.env.DEV })

@@ -125,10 +125,7 @@ export type MultiTubeCableProfile = BaseCableProfile & {
   colorProfile: MultiTubeColorProfile
 }
 
-export type CableProfile =
-  | IbrCableProfile
-  | FlatRibbonCableProfile
-  | MultiTubeCableProfile
+export type CableProfile = IbrCableProfile | FlatRibbonCableProfile | MultiTubeCableProfile
 
 type Header = {
   key: string
@@ -171,17 +168,17 @@ type BaseBatchFiberTestingData<TType extends string, TRow> = {
 
 type BatchFiberTestingDataIbr = BaseBatchFiberTestingData<"IBR", BaseFiberRow>
 
-type BatchFiberTestingDataFlatRibbon = BaseBatchFiberTestingData<
-  "FLAT_RIBBON",
-  BaseFiberRow
->
+type BatchFiberTestingDataFlatRibbon = BaseBatchFiberTestingData<"FLAT_RIBBON", BaseFiberRow>
 
-type BatchFiberTestingDataMultiTube = BaseBatchFiberTestingData<
-  "MULTI_TUBE",
-  BaseFiberRow
->
+type BatchFiberTestingDataMultiTube = BaseBatchFiberTestingData<"MULTI_TUBE", BaseFiberRow>
 
 export type BatchFiberTestingData =
   | BatchFiberTestingDataIbr
   | BatchFiberTestingDataFlatRibbon
   | BatchFiberTestingDataMultiTube
+
+export type SaveBatchFiberTestingDataPayload = {
+  fiber_wavelengths: FiberWavelength[]
+  ai_response: string
+  batchCableProfileLinkId: number
+}
