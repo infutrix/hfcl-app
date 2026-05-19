@@ -158,25 +158,14 @@ type BaseFiberRow = {
   modified_at: string
 }
 
-type BaseBatchFiberTestingData<TType extends string, TRow> = {
+export type BaseBatchFiberTestingData = {
   headers: Header[]
-  rows: TRow[]
+  rows: BaseFiberRow[]
 
   colorProfile: {
-    cable_type: TType
+    cable_type: CableType
   }
 }
-
-type BatchFiberTestingDataIbr = BaseBatchFiberTestingData<"IBR", BaseFiberRow>
-
-type BatchFiberTestingDataFlatRibbon = BaseBatchFiberTestingData<"FLAT_RIBBON", BaseFiberRow>
-
-type BatchFiberTestingDataMultiTube = BaseBatchFiberTestingData<"MULTI_TUBE", BaseFiberRow>
-
-export type BatchFiberTestingData =
-  | BatchFiberTestingDataIbr
-  | BatchFiberTestingDataFlatRibbon
-  | BatchFiberTestingDataMultiTube
 
 export type SaveBatchFiberTestingDataPayload = {
   fiber_wavelengths: FiberWavelength[]
