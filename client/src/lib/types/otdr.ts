@@ -51,32 +51,15 @@ export type IbrColorPrediction = {
 export type SkippyMetricsWithImageResponse = {
   message: string
   runId: string
-  command: string
-  otdrResponse: string
+  loss: {
+    "1310": number | null
+    "1550": number | null
+    "1625": number | null
+  }
   readiness: {
     ready: boolean
     attempts: number
     raw: string
-  }
-  metrics: {
-    loss: number | null
-    ior: number | null
-    length: number | null
-    aCursor: number | null
-    bCursor: number | null
-  }
-  responses: {
-    loss: string
-    bCursor: string
-    aCursor: string
-    ior: string
-  }
-  commands: {
-    readiness: string
-    loss: string
-    bCursor: string
-    aCursor: string
-    ior: string
   }
   colorPrediction: IbrColorPrediction
   savedFiles: {
