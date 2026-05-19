@@ -398,7 +398,7 @@ export default function QaDashboard() {
           <div className="space-y-2">
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">OTDR Length (km)</label>
-              <Input className="col-span-6" />
+              <Input readOnly className="col-span-6" />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">IOR</label>
@@ -411,7 +411,7 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">Fiber</label>
               {selectedCableProfile?.wavelength_configs.map((config) => (
-                <Input id={config.wavelength.toString()} className="col-span-2" />
+                <Input readOnly id={config.wavelength.toString()} className="col-span-2" />
               ))}
               <Button
                 disabled={
@@ -483,7 +483,7 @@ export default function QaDashboard() {
               <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
                 <Table className="border text-xs">
                   <TableHeader>
-                    <TableRow className="sticky top-0 bg-blue-100 dark:bg-blue-900">
+                    <TableRow className="sticky top-0 bg-blue-100 dark:bg-blue-950">
                       {selectedFiltersFiberTestingData?.headers.map((header) => (
                         <TableHead className="h-7 px-2 py-1 text-xs" key={header.key}>
                           {header.label}
@@ -493,7 +493,7 @@ export default function QaDashboard() {
                   </TableHeader>
                   <TableBody>
                     {selectedFiltersFiberTestingData?.rows.map((row, i) => (
-                      <TableRow key={i} className={i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950" : ""}>
+                      <TableRow key={i} className={i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950/50" : ""}>
                         <TableCell className="h-6 px-2 py-1 text-xs">{row.fiber_number}</TableCell>
 
                         <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute1_value}</TableCell>
