@@ -1,5 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsInt,
+  IsObject,
+  IsOptional,
+  Max,
+  Min,
+  ValidateNested,
+} from 'class-validator';
 
 class TestAt {
   @IsBoolean()
@@ -19,6 +27,8 @@ export class RunSkippyMetricsWithImageDto {
   @Max(120000)
   timeoutMs?: number;
 
+  @IsObject()
+  @ValidateNested()
   @Type(() => TestAt)
   testAt: TestAt;
 

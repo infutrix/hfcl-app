@@ -72,38 +72,48 @@ export default function QaDashboard() {
       },
       developerMode: import.meta.env.DEV,
     })
-    if (batchCableProfileLinkId) {
-      await saveBatchFiberTestingData.mutateAsync({
-        batchCableProfileLinkId,
-        fiber_wavelengths: [
-          ...(result.loss[1310] !== undefined
-            ? [
-                {
-                  wavelength_nm: "1310",
-                  measured_value: result.loss[1310]?.toString() || "",
-                },
-              ]
-            : []),
-          ...(result.loss[1550] !== undefined
-            ? [
-                {
-                  wavelength_nm: "1550",
-                  measured_value: result.loss[1550]?.toString() || "",
-                },
-              ]
-            : []),
-          ...(result.loss[1625] !== undefined
-            ? [
-                {
-                  wavelength_nm: "1625",
-                  measured_value: result.loss[1625]?.toString() || "",
-                },
-              ]
-            : []),
-        ],
-        ai_response: JSON.stringify(result.colorPrediction),
-      })
-    }
+
+    setSelectedFilters({
+      attribute1_value: result.colorPrediction.strand?.color,
+      attribute2_value: result.colorPrediction.ribbon ? `R${result.colorPrediction.ribbon.markings_score}` : undefined,
+    })
+
+    await saveBatchFiberTestingData.mutateAsync({
+      fibre_id:
+        batchFiberTestingData?.rows.find(
+          (row) =>
+            row.attribute1_value === result.colorPrediction.strand?.color &&
+            row.attribute2_value === `R${result.colorPrediction.ribbon?.markings_score}` &&
+            row.attribute3_value === result.colorPrediction.fiber?.color
+        )?.id || 0,
+      fiber_wavelengths: [
+        ...(result.loss[1310] !== undefined
+          ? [
+              {
+                wavelength_nm: "1310",
+                measured_value: result.loss[1310]?.toString() || "",
+              },
+            ]
+          : []),
+        ...(result.loss[1550] !== undefined
+          ? [
+              {
+                wavelength_nm: "1550",
+                measured_value: result.loss[1550]?.toString() || "",
+              },
+            ]
+          : []),
+        ...(result.loss[1625] !== undefined
+          ? [
+              {
+                wavelength_nm: "1625",
+                measured_value: result.loss[1625]?.toString() || "",
+              },
+            ]
+          : []),
+      ],
+      ai_response: JSON.stringify(result.colorPrediction),
+    })
   }
   const handleConnect = async () => {
     await connectOtdr.mutateAsync({ connectionType: "connect", developerMode: import.meta.env.DEV })
@@ -194,7 +204,7 @@ export default function QaDashboard() {
       attribute1_value: undefined,
       attribute2_value: undefined,
     })
-  }, [batchFiberTestingData])
+  }, [selectedCableProfile])
 
   // initialize selected filters to first available value (index 0) when lists load
   useEffect(() => {
@@ -460,6 +470,8 @@ export default function QaDashboard() {
                   otdrStatus?.state !== "connected" ||
                   !checkIfAllSelected ||
                   runSkippyMetricsWithImage.isPending ||
+                  isBatchFiberTestingDataLoading ||
+                  isSaveBatchCableProfileLinkPending ||
                   isBatchFiberTestingDataLoading
                 }
                 className="col-span-2 h-8 w-full text-xs"
@@ -480,6 +492,8 @@ export default function QaDashboard() {
                 otdrStatus?.state !== "connected" ||
                 !checkIfAllSelected ||
                 runSkippyMetricsWithImage.isPending ||
+                isBatchFiberTestingDataLoading ||
+                isSaveBatchCableProfileLinkPending ||
                 isBatchFiberTestingDataLoading
               }
               className="h-8 w-full text-xs"
@@ -489,74 +503,83 @@ export default function QaDashboard() {
             {(isBatchFiberTestingDataLoading || isSaveBatchCableProfileLinkPending) && (
               <Loader2 className="m-auto size-5 animate-spin" />
             )}
-            <div className="grid grid-cols-1 gap-2">
-              <ScrollContainer hideScrollbars={false} className="overflow-x-auto pb-1">
-                <ToggleGroup
-                  type="single"
-                  value={selectedFilters.attribute1_value}
-                  defaultValue={uniqueAttribute1_values?.[0]}
-                  onValueChange={(value) => setSelectedFilters((prev) => ({ ...prev, attribute1_value: value }))}
-                >
-                  {uniqueAttribute1_values?.map((value, id) => (
-                    <ToggleGroupItem variant={"outline"} key={id} value={value} aria-label={`Toggle ${value}`}>
-                      {value}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </ScrollContainer>
-              {selectedCableProfile?.colorProfile.cable_type === "IBR" && (
-                <ScrollContainer hideScrollbars={false} className="overflow-x-auto pb-1">
-                  <ToggleGroup
-                    type="single"
-                    value={selectedFilters.attribute2_value}
-                    defaultValue={uniqueAttribute2_values?.[0]}
-                    onValueChange={(value) => setSelectedFilters((prev) => ({ ...prev, attribute2_value: value }))}
-                  >
-                    {uniqueAttribute2_values?.map((value, id) => (
-                      <ToggleGroupItem variant={"outline"} key={id} value={value} aria-label={`Toggle ${value}`}>
-                        {value}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                </ScrollContainer>
-              )}
-            </div>
-            {selectedFiltersFiberTestingData && (
-              <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
-                <Table className="border text-xs">
-                  <TableHeader>
-                    <TableRow className="sticky top-0 bg-blue-100 dark:bg-blue-950">
-                      {selectedFiltersFiberTestingData?.headers.map((header) => (
-                        <TableHead className="h-7 px-2 py-1 text-xs" key={header.key}>
-                          {header.label}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedFiltersFiberTestingData?.rows.map((row, i) => (
-                      <TableRow key={i} className={i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950/50" : ""}>
-                        <TableCell className="h-6 px-2 py-1 text-xs">{row.fiber_number}</TableCell>
 
-                        <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute1_value}</TableCell>
-
-                        <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute2_value}</TableCell>
-
-                        {row?.attribute3_value && (
-                          <TableCell className="h-6 px-2 py-1 text-xs">{row?.attribute3_value}</TableCell>
-                        )}
-
-                        {row.fiber_wavelengths.map((wavelength, idx) => (
-                          <TableCell className="h-6 px-2 py-1 text-xs" key={idx}>
-                            <Input readOnly className="h-6 px-2 py-1 text-xs" value={wavelength.measured_value} />
-                          </TableCell>
+            {selectedFiltersFiberTestingData &&
+              !isSaveBatchCableProfileLinkPending &&
+              !isBatchFiberTestingDataLoading && (
+                <>
+                  <div className="grid grid-cols-1 gap-2">
+                    <ScrollContainer hideScrollbars={false} className="overflow-x-auto pb-1">
+                      <ToggleGroup
+                        type="single"
+                        value={selectedFilters.attribute1_value}
+                        defaultValue={uniqueAttribute1_values?.[0]}
+                        onValueChange={(value) => setSelectedFilters((prev) => ({ ...prev, attribute1_value: value }))}
+                      >
+                        {uniqueAttribute1_values?.map((value, id) => (
+                          <ToggleGroupItem variant={"outline"} key={id} value={value} aria-label={`Toggle ${value}`}>
+                            {value}
+                          </ToggleGroupItem>
                         ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+                      </ToggleGroup>
+                    </ScrollContainer>
+                    {selectedCableProfile?.colorProfile.cable_type === "IBR" && (
+                      <ScrollContainer hideScrollbars={false} className="overflow-x-auto pb-1">
+                        <ToggleGroup
+                          type="single"
+                          value={selectedFilters.attribute2_value}
+                          defaultValue={uniqueAttribute2_values?.[0]}
+                          onValueChange={(value) =>
+                            setSelectedFilters((prev) => ({ ...prev, attribute2_value: value }))
+                          }
+                        >
+                          {uniqueAttribute2_values?.map((value, id) => (
+                            <ToggleGroupItem variant={"outline"} key={id} value={value} aria-label={`Toggle ${value}`}>
+                              {value}
+                            </ToggleGroupItem>
+                          ))}
+                        </ToggleGroup>
+                      </ScrollContainer>
+                    )}
+                  </div>
+                  <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
+                    <Table className="border text-xs">
+                      <TableHeader>
+                        <TableRow className="sticky top-0 bg-blue-100 dark:bg-blue-950">
+                          {selectedFiltersFiberTestingData?.headers.map((header) => (
+                            <TableHead className="h-7 px-2 py-1 text-xs" key={header.key}>
+                              {header.label}
+                            </TableHead>
+                          ))}
+                          <TableHead className="h-7 px-2 py-1 text-xs">Test Count</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedFiltersFiberTestingData?.rows.map((row, i) => (
+                          <TableRow key={i} className={i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950/50" : ""}>
+                            <TableCell className="h-6 px-2 py-1 text-xs">{row.fiber_number}</TableCell>
+
+                            <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute1_value}</TableCell>
+
+                            <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute2_value}</TableCell>
+
+                            {row?.attribute3_value && (
+                              <TableCell className="h-6 px-2 py-1 text-xs">{row?.attribute3_value}</TableCell>
+                            )}
+
+                            {row.fiber_wavelengths.map((wavelength, idx) => (
+                              <TableCell className="h-6 px-2 py-1 text-xs" key={idx}>
+                                <Input readOnly className="h-6 px-2 py-1 text-xs" value={wavelength.measured_value} />
+                              </TableCell>
+                            ))}
+                            <TableCell className="h-6 px-2 py-1 text-xs">{row.testing_counter}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              )}
             {cableProfile && (
               <>
                 <div className="grid grid-cols-7 items-center gap-2">

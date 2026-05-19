@@ -140,6 +140,7 @@ type FiberWavelength = {
 type BaseFiberRow = {
   id: number
   fiber_number: number
+  testing_counter: 0
 
   attribute1_name: string
   attribute1_value: string
@@ -180,5 +181,5 @@ export type BatchFiberTestingData =
 export type SaveBatchFiberTestingDataPayload = {
   fiber_wavelengths: FiberWavelength[]
   ai_response: string
-  batchCableProfileLinkId: number
+  fibre_id: number
 }

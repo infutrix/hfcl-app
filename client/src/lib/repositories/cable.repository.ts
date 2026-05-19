@@ -31,6 +31,7 @@ export default class Cable {
   }
 
   static async saveBatchFiberTestingData(data: SaveBatchFiberTestingDataPayload): Promise<void> {
-    await apiCms.put(`/batch-fiber-testing/${data.batchCableProfileLinkId}`, data)
+    const { fibre_id, ...payload } = data
+    await apiCms.put(`/batch-fiber-testing/${fibre_id}`, payload)
   }
 }
