@@ -203,6 +203,10 @@ export class OtdrService implements OnModuleDestroy {
               },
             ],
           },
+          tube_color: {
+            color: 'Blue-Strip',
+            confidence: 0,
+          },
           status: 'success',
           validation: {
             status: 'failed',
