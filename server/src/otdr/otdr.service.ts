@@ -11,7 +11,10 @@ import { Socket } from 'net';
 import { mkdir, writeFile } from 'fs/promises';
 import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
-import { RunSkippyMetricsWithImageDto } from './dto/run-skippy-metrics-with-image.dto';
+import {
+  CableType,
+  RunSkippyMetricsWithImageDto,
+} from './dto/run-skippy-metrics-with-image.dto';
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
@@ -43,7 +46,10 @@ export class OtdrService implements OnModuleDestroy {
   private readonly bCursorCommand = 'sense:bcursor?';
   private readonly aCursorCommand = 'sense:acursor?';
   private readonly runStorageDir = join(process.cwd(), 'public', 'otdr-runs');
-  private readonly iBrPredictUrl = 'http://localhost:8000/api/v1/predict/ibr';
+  private readonly basePredictUrl = 'http://localhost:8000';
+  private readonly iBrPredictUrl = `${this.basePredictUrl}/api/v1/predict/ibr`;
+  private readonly flatRibbonPredictUrl = `${this.basePredictUrl}/api/v1/predict/flat_ribbon`;
+  private readonly multiTubPredictUrl = `${this.basePredictUrl}/api/v1/predict/multi_tube`;
   private readonly iBrPredictTimeoutMs = 200000;
   private readonly captureImageUrl =
     process.env.CAPTURE_IMAGE_URL ?? 'http://localhost:5001/capture';
@@ -125,7 +131,8 @@ export class OtdrService implements OnModuleDestroy {
   async runSkippyMetricsWithImage(
     runSkippyMetricsWithImageDto: RunSkippyMetricsWithImageDto,
   ) {
-    const { timeoutMs, developerMode, testAt } = runSkippyMetricsWithImageDto;
+    const { timeoutMs, developerMode, testAt, cableType } =
+      runSkippyMetricsWithImageDto;
     const runId = `${Date.now()}-${randomUUID()}`;
     const loss: {
       '1310'?: number | null;
@@ -256,7 +263,7 @@ export class OtdrService implements OnModuleDestroy {
       };
     });
 
-    const colorPrediction = await this.predictIbrColor(image);
+    const colorPrediction = await this.predictIbrColor(image, cableType);
     const recordFileName = `${runId}.json`;
     const recordFilePath = join(this.runStorageDir, recordFileName);
 
@@ -583,7 +590,10 @@ export class OtdrService implements OnModuleDestroy {
     return byMimeType[mimetype] ?? '.img';
   }
 
-  private async predictIbrColor(image: UploadedImageFile): Promise<unknown> {
+  private async predictIbrColor(
+    image: UploadedImageFile,
+    cableType: CableType,
+  ): Promise<unknown> {
     const formData = new FormData();
     const fileBytes = Uint8Array.from(image.buffer);
     const blob = new Blob([fileBytes], {
@@ -599,14 +609,21 @@ export class OtdrService implements OnModuleDestroy {
     let response: Response;
 
     try {
-      response = await fetch(this.iBrPredictUrl, {
-        method: 'POST',
-        headers: {
-          accept: 'application/json',
+      response = await fetch(
+        cableType === 'IBR'
+          ? this.iBrPredictUrl
+          : cableType === 'FLAT_RIBBON'
+            ? this.flatRibbonPredictUrl
+            : this.multiTubPredictUrl,
+        {
+          method: 'POST',
+          headers: {
+            accept: 'application/json',
+          },
+          body: formData,
+          signal: abortController.signal,
         },
-        body: formData,
-        signal: abortController.signal,
-      });
+      );
     } catch (error) {
       const reason =
         error instanceof Error ? error.message : 'Unknown network error';

@@ -10,6 +10,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 
+export const CableType = ['IBR', 'MULTI_TUBE', 'FLAT_RIBBON'] as const;
+export type CableType = (typeof CableType)[number];
 class TestAt {
   @IsBoolean()
   '1310': boolean;
@@ -33,8 +35,8 @@ export class RunSkippyMetricsWithImageDto {
   @Type(() => TestAt)
   testAt: TestAt;
 
-  @IsEnum(['IBR', 'MULTI_TUBE', 'FLAT_RIBBON'])
-  cableType: 'IBR' | 'MULTI_TUBE' | 'FLAT_RIBBON';
+  @IsEnum(CableType)
+  cableType: CableType;
 
   @IsBoolean()
   @IsOptional()
