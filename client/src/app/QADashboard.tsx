@@ -31,6 +31,7 @@ import {
 } from "@/hooks/use-cable"
 import { useLogout, useMe } from "@/hooks/use-auth"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import type { ColorPrediction } from "@/lib/types/otdr"
 
 export default function QaDashboard() {
   // states
@@ -71,20 +72,27 @@ export default function QaDashboard() {
         "1625": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1625),
       },
       developerMode: import.meta.env.DEV,
+      cableType: selectedCableProfile?.colorProfile.cable_type || "IBR",
     })
 
     setSelectedFilters({
-      attribute1_value: result.colorPrediction.strand?.color,
-      attribute2_value: result.colorPrediction.ribbon ? `R${result.colorPrediction.ribbon.markings_score}` : undefined,
+      attribute1_value: getAttribute1Value(result.colorPrediction),
+      attribute2_value:
+        result.colorPrediction.cableType === "IBR" ? getAttribute2Value(result.colorPrediction) : undefined,
+    })
+    console.log({
+      a: getAttribute1Value(result.colorPrediction),
+      b: getAttribute2Value(result.colorPrediction),
+      c: getAttribute3Value(result.colorPrediction),
     })
 
     await saveBatchFiberTestingData.mutateAsync({
       fibre_id:
         batchFiberTestingData?.rows.find(
           (row) =>
-            row.attribute1_value === result.colorPrediction.strand?.color &&
-            row.attribute2_value === `R${result.colorPrediction.ribbon?.markings_score}` &&
-            row.attribute3_value === result.colorPrediction.fiber?.color
+            row.attribute1_value === getAttribute1Value(result.colorPrediction) &&
+            row.attribute2_value === getAttribute2Value(result.colorPrediction) &&
+            row.attribute3_value === getAttribute3Value(result.colorPrediction)
         )?.id || 0,
       fiber_wavelengths: [
         ...(result.loss[1310] !== undefined
@@ -191,6 +199,36 @@ export default function QaDashboard() {
       })
       setBatchCableProfileLinkId(data.id)
     }
+  }
+
+  function getAttribute1Value(colorPrediction: ColorPrediction) {
+    if (colorPrediction.cableType === "IBR") {
+      console.log(colorPrediction.strand?.color)
+      return colorPrediction.strand?.color
+    } else if (colorPrediction.cableType === "FLAT_RIBBON") {
+      return `R${colorPrediction.ribbon?.markings}`
+    } else if (colorPrediction.cableType === "MULTI_TUBE") {
+      return colorPrediction.tube_color?.color
+    }
+  }
+
+  function getAttribute2Value(colorPrediction: ColorPrediction) {
+    if (colorPrediction.cableType === "IBR") {
+      return `R${colorPrediction.ribbon?.markings_score}`
+    }
+    if (colorPrediction.cableType === "FLAT_RIBBON") {
+      return colorPrediction.fiber?.color
+    }
+    if (colorPrediction.cableType === "MULTI_TUBE") {
+      return colorPrediction.fiber?.color
+    }
+  }
+
+  function getAttribute3Value(colorPrediction: ColorPrediction) {
+    if (colorPrediction.cableType === "IBR") {
+      return colorPrediction.fiber?.color
+    }
+    return null
   }
 
   // automatically save link between selected batch, cable profile, sfg stage and otdr device when any of them changes and all are selected

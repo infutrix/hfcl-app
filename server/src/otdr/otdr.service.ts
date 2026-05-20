@@ -13,6 +13,7 @@ import { extname, join } from 'path';
 import { randomUUID } from 'crypto';
 import {
   CableType,
+  CableTypeEnum,
   RunSkippyMetricsWithImageDto,
 } from './dto/run-skippy-metrics-with-image.dto';
 
@@ -159,6 +160,7 @@ export class OtdrService implements OnModuleDestroy {
           raw: 'INITiate? response',
         },
         colorPrediction: {
+          cableType,
           rois: {
             ribbon: [1521, 1560, 3674, 2466],
             fiber: [720, 1754, 1447, 2481],
@@ -184,6 +186,7 @@ export class OtdrService implements OnModuleDestroy {
           },
           ribbon: {
             markings_score: 1,
+            markings: 1,
           },
           strand: {
             color: 'White',
@@ -292,7 +295,10 @@ export class OtdrService implements OnModuleDestroy {
       runId,
       loss: metricsResult.loss,
       readiness: metricsResult.readiness,
-      colorPrediction,
+      colorPrediction: {
+        cableType,
+        ...colorPrediction,
+      },
       savedFiles: {
         image: join('public', 'otdr-runs', imageFileName),
         record: join('public', 'otdr-runs', recordFileName),
@@ -597,7 +603,7 @@ export class OtdrService implements OnModuleDestroy {
   private async predictIbrColor(
     image: UploadedImageFile,
     cableType: CableType,
-  ): Promise<unknown> {
+  ): Promise<object> {
     const formData = new FormData();
     const fileBytes = Uint8Array.from(image.buffer);
     const blob = new Blob([fileBytes], {
@@ -614,9 +620,9 @@ export class OtdrService implements OnModuleDestroy {
 
     try {
       response = await fetch(
-        cableType === 'IBR'
+        cableType === CableTypeEnum.IBR
           ? this.iBrPredictUrl
-          : cableType === 'FLAT_RIBBON'
+          : cableType === CableTypeEnum.FLAT_RIBBON
             ? this.flatRibbonPredictUrl
             : this.multiTubPredictUrl,
         {

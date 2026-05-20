@@ -1,4 +1,5 @@
 import z from "zod"
+import type { CableType } from "./cable"
 
 export type CreateOtdrConnectionInput = {
   connectionType: "connect" | "disconnect"
@@ -31,6 +32,7 @@ export type SkippyCommandResponse = {
 export type RunSkippyMetricsWithImageInput = {
   timeoutMs?: number
   developerMode?: boolean
+  cableType: CableType
   testAt: {
     "1310"?: boolean
     "1550"?: boolean
@@ -39,16 +41,17 @@ export type RunSkippyMetricsWithImageInput = {
 }
 
 export type IbrColorPrediction = {
+  cableType: "IBR"
   fiber: {
-    color: string | null
+    color?: string
     confidence: number
   }
   ribbon: {
-    markings_score: number | null
+    markings_score?: number
     confidence: number
   }
   strand: {
-    color: string | null
+    color?: string
     confidence: number
   }
   status: string
@@ -59,8 +62,9 @@ export type IbrColorPrediction = {
 }
 
 export type FlatRibbonColorPrediction = {
+  cableType: "FLAT_RIBBON"
   fiber: {
-    color: string | null
+    color?: string
     confidence: number
   }
   ribbon: {
@@ -75,16 +79,17 @@ export type FlatRibbonColorPrediction = {
 }
 
 export type MultiTubeColorPrediction = {
+  cableType: "MULTI_TUBE"
   fiber: {
-    color: string | null
+    color?: string
     confidence: number
   }
   tube_color: {
-    color: string | null
+    color?: string
     confidence: number
   }
   fiber_markings: {
-    pattern_id: number | null
+    pattern_id?: number
     raw_detections: number
   }
   status: string
@@ -94,20 +99,22 @@ export type MultiTubeColorPrediction = {
   }
 }
 
+export type ColorPrediction = IbrColorPrediction | FlatRibbonColorPrediction | MultiTubeColorPrediction
+
 export type SkippyMetricsWithImageResponse = {
   message: string
   runId: string
   loss: {
-    "1310": number | null
-    "1550": number | null
-    "1625": number | null
+    "1310"?: number
+    "1550"?: number
+    "1625"?: number
   }
   readiness: {
     ready: boolean
     attempts: number
     raw: string
   }
-  colorPrediction: IbrColorPrediction | FlatRibbonColorPrediction | MultiTubeColorPrediction
+  colorPrediction: ColorPrediction
   savedFiles: {
     image: string
     record: string
