@@ -29,21 +29,6 @@ interface UploadedImageFile {
   buffer: Buffer;
 }
 
-export interface IbrPredictResponse {
-  fiber?: {
-    color?: string;
-    confidence?: number;
-  };
-  ribbon?: {
-    markings_score?: number;
-  };
-  strand?: {
-    color?: string;
-    confidence?: number;
-  };
-  status?: string;
-}
-
 @Injectable()
 export class OtdrService implements OnModuleDestroy {
   private readonly lossAt1310Command =
@@ -598,9 +583,7 @@ export class OtdrService implements OnModuleDestroy {
     return byMimeType[mimetype] ?? '.img';
   }
 
-  private async predictIbrColor(
-    image: UploadedImageFile,
-  ): Promise<IbrPredictResponse> {
+  private async predictIbrColor(image: UploadedImageFile): Promise<unknown> {
     const formData = new FormData();
     const fileBytes = Uint8Array.from(image.buffer);
     const blob = new Blob([fileBytes], {
@@ -646,7 +629,7 @@ export class OtdrService implements OnModuleDestroy {
       });
     }
 
-    const data = (await response.json()) as IbrPredictResponse;
+    const data = (await response.json()) as unknown;
 
     if (!data || typeof data !== 'object') {
       throw new InternalServerErrorException(

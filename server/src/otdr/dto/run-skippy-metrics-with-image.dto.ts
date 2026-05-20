@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsEnum,
   IsInt,
   IsObject,
   IsOptional,
@@ -31,6 +32,9 @@ export class RunSkippyMetricsWithImageDto {
   @ValidateNested()
   @Type(() => TestAt)
   testAt: TestAt;
+
+  @IsEnum(['IBR', 'MULTI_TUBE', 'FLAT_RIBBON'])
+  cableType: 'IBR' | 'MULTI_TUBE' | 'FLAT_RIBBON';
 
   @IsBoolean()
   @IsOptional()
