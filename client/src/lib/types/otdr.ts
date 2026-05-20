@@ -39,18 +39,59 @@ export type RunSkippyMetricsWithImageInput = {
 }
 
 export type IbrColorPrediction = {
-  fiber?: {
-    color?: string
-    confidence?: number
+  fiber: {
+    color: string | null
+    confidence: number
   }
-  ribbon?: {
-    markings_score?: number
+  ribbon: {
+    markings_score: number | null
+    confidence: number
   }
-  strand?: {
-    color?: string
-    confidence?: number
+  strand: {
+    color: string | null
+    confidence: number
   }
-  status?: string
+  status: string
+  validation: {
+    status: string
+    error: string
+  }
+}
+
+export type FlatRibbonColorPrediction = {
+  fiber: {
+    color: string | null
+    confidence: number
+  }
+  ribbon: {
+    markings: number
+    confidence: number
+  }
+  status: string
+  validation: {
+    status: string
+    error: string
+  }
+}
+
+export type MultiTubeColorPrediction = {
+  fiber: {
+    color: string | null
+    confidence: number
+  }
+  tube_color: {
+    color: string | null
+    confidence: number
+  }
+  fiber_markings: {
+    pattern_id: number | null
+    raw_detections: number
+  }
+  status: string
+  validation: {
+    status: string
+    error: string
+  }
 }
 
 export type SkippyMetricsWithImageResponse = {
@@ -66,7 +107,7 @@ export type SkippyMetricsWithImageResponse = {
     attempts: number
     raw: string
   }
-  colorPrediction: IbrColorPrediction
+  colorPrediction: IbrColorPrediction | FlatRibbonColorPrediction | MultiTubeColorPrediction
   savedFiles: {
     image: string
     record: string
