@@ -158,7 +158,7 @@ type BaseFiberRow = {
   modified_at: string
 }
 
-export type BaseBatchFiberTestingData = {
+export type BatchFiberTestingData = {
   headers: Header[]
   rows: BaseFiberRow[]
 
