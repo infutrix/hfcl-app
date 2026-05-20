@@ -221,19 +221,6 @@ export default function QaDashboard() {
     }
   }, [uniqueAttribute1_values, uniqueAttribute2_values])
 
-  console.log({
-    colors: {
-      STRAND: runSkippyMetricsWithImage.data?.colorPrediction.strand?.color,
-      RIBBON: `R${runSkippyMetricsWithImage.data?.colorPrediction.ribbon?.markings_score}`,
-      FIBER: runSkippyMetricsWithImage.data?.colorPrediction.fiber?.color,
-    },
-    losses: {
-      "1310": runSkippyMetricsWithImage.data?.loss[1310],
-      "1550": runSkippyMetricsWithImage.data?.loss[1550],
-      "1625": runSkippyMetricsWithImage.data?.loss[1625],
-    },
-  })
-
   return (
     <div className="grid grid-cols-12 gap-2 px-2 py-4">
       <div className="col-span-4 space-y-2">
@@ -268,7 +255,7 @@ export default function QaDashboard() {
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>OTDR Devices</SelectLabel>
-                      {otdrDevices?.map((device,id) => (
+                      {otdrDevices?.map((device, id) => (
                         <SelectItem key={id} value={device.id.toString()}>
                           {device.device_name}
                         </SelectItem>
@@ -309,7 +296,7 @@ export default function QaDashboard() {
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Batches</SelectLabel>
-                      {batches?.map((batch,id) => (
+                      {batches?.map((batch, id) => (
                         <SelectItem key={id} value={batch.id.toString()}>
                           {batch.batch}
                         </SelectItem>
@@ -329,7 +316,7 @@ export default function QaDashboard() {
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>SFG Stages</SelectLabel>
-                      {sfgStages?.map((stage,id) => (
+                      {sfgStages?.map((stage, id) => (
                         <SelectItem key={id} value={stage.id.toString()}>
                           {stage.name}
                         </SelectItem>
@@ -349,7 +336,7 @@ export default function QaDashboard() {
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Cable Profiles</SelectLabel>
-                      {cableProfiles?.map((profile,id) => (
+                      {cableProfiles?.map((profile, id) => (
                         <SelectItem key={id} value={profile.id.toString()}>
                           {profile.cable_profile_name}
                         </SelectItem>
@@ -425,7 +412,7 @@ export default function QaDashboard() {
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <div className="col-span-2" />
-              {selectedCableProfile?.wavelength_configs.map((config,id) => (
+              {selectedCableProfile?.wavelength_configs.map((config, id) => (
                 <div className="col-span-2" key={id}>
                   <label className="col-span-2 font-medium text-foreground">{config.wavelength}(nm)</label>
                 </div>
@@ -433,13 +420,13 @@ export default function QaDashboard() {
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               {selectedCableProfile && <label className="col-span-2 font-medium text-foreground">Loss (min)</label>}
-              {selectedCableProfile?.wavelength_configs.map((config,id) => (
+              {selectedCableProfile?.wavelength_configs.map((config, id) => (
                 <Input className="col-span-2" key={id} value={config.min_attenuation} readOnly />
               ))}
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               {selectedCableProfile && <label className="col-span-2 font-medium text-foreground">Loss (max)</label>}
-              {selectedCableProfile?.wavelength_configs.map((config,id) => (
+              {selectedCableProfile?.wavelength_configs.map((config, id) => (
                 <Input className="col-span-2" key={id} value={config.max_attenuation} readOnly />
               ))}
             </div>
@@ -454,7 +441,7 @@ export default function QaDashboard() {
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">IOR</label>
-              {selectedCableProfile?.wavelength_configs.map((config,id) => (
+              {selectedCableProfile?.wavelength_configs.map((config, id) => (
                 <div className="col-span-2" key={id}>
                   <label className="col-span-2 font-medium text-foreground">{config.wavelength}(nm)</label>
                 </div>
@@ -462,7 +449,7 @@ export default function QaDashboard() {
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">Fiber</label>
-              {selectedCableProfile?.wavelength_configs.map((config,id) => (
+              {selectedCableProfile?.wavelength_configs.map((config, id) => (
                 <Input key={id} readOnly id={config.wavelength.toString()} className="col-span-2" />
               ))}
               <Button
