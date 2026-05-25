@@ -47,7 +47,7 @@ export class OtdrService implements OnModuleDestroy {
   private readonly bCursorCommand = 'sense:bcursor?';
   private readonly aCursorCommand = 'sense:acursor?';
   private readonly runStorageDir = join(process.cwd(), 'public', 'otdr-runs');
-  private readonly basePredictUrl = 'https://pft8zvgt-8000.inc1.devtunnels.ms';
+  private readonly basePredictUrl = 'http://localhost:8000';
   private readonly iBrPredictUrl = `${this.basePredictUrl}/api/v1/predict/ibr`;
   private readonly flatRibbonPredictUrl = `${this.basePredictUrl}/api/v1/predict/flat_ribbon`;
   private readonly multiTubPredictUrl = `${this.basePredictUrl}/api/v1/predict/multi_tube`;
