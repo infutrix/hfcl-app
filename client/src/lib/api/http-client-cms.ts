@@ -1,7 +1,7 @@
 import axios from "axios"
 
 const apiCms = axios.create({
-  baseURL: "http://72.60.97.5:2219",
+  baseURL: "https://hfclapi.infutrix.com",
   withCredentials: true,
 })
 
@@ -9,8 +9,7 @@ const apiCms = axios.create({
  * Request interceptor
  */
 apiCms.interceptors.request.use((config) => {
-  const isFormDataPayload =
-    typeof FormData !== "undefined" && config.data instanceof FormData
+  const isFormDataPayload = typeof FormData !== "undefined" && config.data instanceof FormData
 
   if (isFormDataPayload) {
     return config
