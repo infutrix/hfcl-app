@@ -33,9 +33,12 @@ import {
 import { useLogout, useMe } from "@/hooks/use-auth"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ColorPrediction } from "@/lib/types/otdr"
+import { OK_NOT_OK, type BatchCablePhysicalParametersPayload } from "@/lib/types/cable"
 
 export default function QaDashboard() {
   // states
+  const [cablePhysicalParameters, setCablePhysicalParameters] =
+    useState<Partial<BatchCablePhysicalParametersPayload> | null>(null)
   const [otdr, setOtdr] = useState("")
   const [sfgStage, setSfgStage] = useState("")
   const [batch, setBatch] = useState("")
@@ -660,36 +663,75 @@ export default function QaDashboard() {
           <div className="space-y-2">
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">IEM</label>
-              <Input className="col-span-7" />
+              <Input
+                className="col-span-7"
+                value={cablePhysicalParameters?.iem}
+                onChange={(e) => setCablePhysicalParameters({ ...cablePhysicalParameters, iem: e.target.value })}
+              />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">OEM/Length of SFG (m)</label>
-              <Input className="col-span-7" />
+              <Input
+                className="col-span-7"
+                value={cablePhysicalParameters?.oem_length_of_sfg_m}
+                onChange={(e) =>
+                  setCablePhysicalParameters({ ...cablePhysicalParameters, oem_length_of_sfg_m: e.target.value })
+                }
+              />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Inner Sheath (mm)</label>
-              <Input className="col-span-7" />
+              <Input
+                className="col-span-7"
+                value={cablePhysicalParameters?.inner_sheath_mm}
+                onChange={(e) =>
+                  setCablePhysicalParameters({ ...cablePhysicalParameters, inner_sheath_mm: e.target.value })
+                }
+              />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Outer Sheath (mm)</label>
-              <Input className="col-span-7" />
+              <Input
+                className="col-span-7"
+                value={cablePhysicalParameters?.outer_sheath_mm}
+                onChange={(e) =>
+                  setCablePhysicalParameters({ ...cablePhysicalParameters, outer_sheath_mm: e.target.value })
+                }
+              />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Cable Dia (mm)</label>
-              <Input className="col-span-7" />
+              <Input
+                className="col-span-7"
+                value={cablePhysicalParameters?.cable_dia_mm}
+                onChange={(e) =>
+                  setCablePhysicalParameters({ ...cablePhysicalParameters, cable_dia_mm: e.target.value })
+                }
+              />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Stripability/Rib Separation</label>
               <div className="col-span-7">
-                <Select defaultValue="OK">
+                <Select
+                  defaultValue="OK"
+                  value={cablePhysicalParameters?.stripability_rib_separation}
+                  onValueChange={(value: OK_NOT_OK) =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      stripability_rib_separation: value,
+                    })
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="OK">OK</SelectItem>
-                      <SelectItem value="NOT OK">NOT OK</SelectItem>
-                      <SelectItem value="N/A">N/A</SelectItem>
+                      {OK_NOT_OK.map((value, id) => (
+                        <SelectItem key={id} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -698,15 +740,26 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Visual Inspection</label>
               <div className="col-span-7">
-                <Select defaultValue="OK">
+                <Select
+                  defaultValue="OK"
+                  value={cablePhysicalParameters?.visual_inspection}
+                  onValueChange={(value: OK_NOT_OK) =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      visual_inspection: value,
+                    })
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="OK">OK</SelectItem>
-                      <SelectItem value="NOT OK">NOT OK</SelectItem>
-                      <SelectItem value="N/A">N/A</SelectItem>
+                      {OK_NOT_OK.map((value, id) => (
+                        <SelectItem key={id} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -716,15 +769,26 @@ export default function QaDashboard() {
               <div className="col-span-5 grid grid-cols-5 items-center gap-2">
                 <label className="col-span-3 font-medium text-foreground">WPT</label>
                 <div className="col-span-2">
-                  <Select defaultValue="OK">
+                  <Select
+                    defaultValue="OK"
+                    value={cablePhysicalParameters?.wpt}
+                    onValueChange={(value: OK_NOT_OK) =>
+                      setCablePhysicalParameters({
+                        ...cablePhysicalParameters,
+                        wpt: value,
+                      })
+                    }
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="OK">OK</SelectItem>
-                        <SelectItem value="NOT OK">NOT OK</SelectItem>
-                        <SelectItem value="N/A">N/A</SelectItem>
+                        {OK_NOT_OK.map((value, id) => (
+                          <SelectItem key={id} value={value}>
+                            {value}
+                          </SelectItem>
+                        ))}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -751,15 +815,26 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Sheath Removal (R/LC)</label>
               <div className="col-span-7">
-                <Select defaultValue="OK">
+                <Select
+                  defaultValue="OK"
+                  value={cablePhysicalParameters?.sheath_removal_r_lc}
+                  onValueChange={(value: OK_NOT_OK) =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      sheath_removal_r_lc: value,
+                    })
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="OK">OK</SelectItem>
-                      <SelectItem value="NOT OK">NOT OK</SelectItem>
-                      <SelectItem value="N/A">N/A</SelectItem>
+                      {OK_NOT_OK.map((value, id) => (
+                        <SelectItem key={id} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -767,24 +842,45 @@ export default function QaDashboard() {
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Tube ID/OD (nm)</label>
-              <Input className="col-span-7" />
+              <Input
+                className="col-span-7"
+                value={cablePhysicalParameters?.tube_id_od_nm}
+                onChange={(e) =>
+                  setCablePhysicalParameters({ ...cablePhysicalParameters, tube_id_od_nm: e.target.value })
+                }
+              />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">FRP Dia (nm)</label>
-              <Input className="col-span-7" />
+              <Input
+                className="col-span-7"
+                value={cablePhysicalParameters?.frp_dia_nm}
+                onChange={(e) => setCablePhysicalParameters({ ...cablePhysicalParameters, frp_dia_nm: e.target.value })}
+              />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Fiber Seg of Ribbon</label>
               <div className="col-span-7">
-                <Select defaultValue="OK">
+                <Select
+                  defaultValue="OK"
+                  value={cablePhysicalParameters?.fiber_seg_of_ribbon}
+                  onValueChange={(value: OK_NOT_OK) =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      fiber_seg_of_ribbon: value,
+                    })
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="OK">OK</SelectItem>
-                      <SelectItem value="NOT OK">NOT OK</SelectItem>
-                      <SelectItem value="N/A">N/A</SelectItem>
+                      {OK_NOT_OK.map((value, id) => (
+                        <SelectItem key={id} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -793,15 +889,26 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Ribbon Print Qty</label>
               <div className="col-span-7">
-                <Select defaultValue="OK">
+                <Select
+                  defaultValue="OK"
+                  value={cablePhysicalParameters?.ribbon_print_qty}
+                  onValueChange={(value: OK_NOT_OK) =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      ribbon_print_qty: value,
+                    })
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="OK">OK</SelectItem>
-                      <SelectItem value="NOT OK">NOT OK</SelectItem>
-                      <SelectItem value="N/A">N/A</SelectItem>
+                      {OK_NOT_OK.map((value, id) => (
+                        <SelectItem key={id} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -810,15 +917,26 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Color of Fiber</label>
               <div className="col-span-7">
-                <Select defaultValue="OK">
+                <Select
+                  defaultValue="OK"
+                  value={cablePhysicalParameters?.color_of_fiber}
+                  onValueChange={(value: OK_NOT_OK) =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      color_of_fiber: value,
+                    })
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="OK">OK</SelectItem>
-                      <SelectItem value="NOT OK">NOT OK</SelectItem>
-                      <SelectItem value="N/A">N/A</SelectItem>
+                      {OK_NOT_OK.map((value, id) => (
+                        <SelectItem key={id} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -846,15 +964,26 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Ribbon Rub Test</label>
               <div className="col-span-7">
-                <Select defaultValue="OK">
+                <Select
+                  defaultValue="OK"
+                  value={cablePhysicalParameters?.ribbon_rub_test}
+                  onValueChange={(value: OK_NOT_OK) =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      ribbon_rub_test: value,
+                    })
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="OK">OK</SelectItem>
-                      <SelectItem value="NOT OK">NOT OK</SelectItem>
-                      <SelectItem value="N/A">N/A</SelectItem>
+                      {OK_NOT_OK.map((value, id) => (
+                        <SelectItem key={id} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -863,15 +992,26 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Ribbon Stiffness</label>
               <div className="col-span-7">
-                <Select defaultValue="OK">
+                <Select
+                  defaultValue="OK"
+                  value={cablePhysicalParameters?.ribbon_stiffness}
+                  onValueChange={(value: OK_NOT_OK) =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      ribbon_stiffness: value,
+                    })
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="OK">OK</SelectItem>
-                      <SelectItem value="NOT OK">NOT OK</SelectItem>
-                      <SelectItem value="N/A">N/A</SelectItem>
+                      {OK_NOT_OK.map((value, id) => (
+                        <SelectItem key={id} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -880,15 +1020,26 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Ribbon Separation</label>
               <div className="col-span-7">
-                <Select defaultValue="OK">
+                <Select
+                  defaultValue="OK"
+                  value={cablePhysicalParameters?.ribbon_separation}
+                  onValueChange={(value: OK_NOT_OK) =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      ribbon_separation: value,
+                    })
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="OK">OK</SelectItem>
-                      <SelectItem value="NOT OK">NOT OK</SelectItem>
-                      <SelectItem value="N/A">N/A</SelectItem>
+                      {OK_NOT_OK.map((value, id) => (
+                        <SelectItem key={id} value={value}>
+                          {value}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -897,7 +1048,16 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Status</label>
               <div className="col-span-7">
-                <Select defaultValue="PASS">
+                <Select
+                  defaultValue="PASS"
+                  value={cablePhysicalParameters?.status}
+                  onValueChange={(value: "PENDING" | "PASS") =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      status: value,
+                    })
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
