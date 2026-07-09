@@ -167,6 +167,14 @@ export type BatchFiberTestingData = {
   }
 }
 
+export type VernierResponse = {
+  id: number
+  vernier_no: string
+  status: boolean
+  created_at: string
+  modified_at: string
+}
+
 export type SaveBatchFiberTestingDataPayload = {
   fiber_wavelengths: FiberWavelength[]
   ai_response: string

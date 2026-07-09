@@ -7,6 +7,7 @@ import type {
   CableProfile,
   SaveBatchFiberTestingDataPayload,
   SfgStage,
+  VernierResponse,
 } from "../types/cable"
 
 export default class Cable {
@@ -33,5 +34,9 @@ export default class Cable {
   static async saveBatchFiberTestingData(data: SaveBatchFiberTestingDataPayload): Promise<void> {
     const { fibre_id, ...payload } = data
     await apiCms.put(`/batch-fiber-testing/${fibre_id}`, payload)
+  }
+
+  static async getAllVerniers(): Promise<VernierResponse[]> {
+    return await apiCms.get("/vernier-nos")
   }
 }

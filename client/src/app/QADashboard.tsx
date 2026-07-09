@@ -25,6 +25,7 @@ import {
   useGetAllBatches,
   useGetAllCableProfiles,
   useGetAllSfgStages,
+  useGetAllVerniers,
   useGetBatchFiberTestingData,
   useSaveBatchCableProfileLink,
   useSaveBatchFiberTestingData,
@@ -38,6 +39,7 @@ export default function QaDashboard() {
   const [otdr, setOtdr] = useState("")
   const [sfgStage, setSfgStage] = useState("")
   const [batch, setBatch] = useState("")
+  const [vernier, setVernier] = useState("")
   const [cableProfile, setCableProfile] = useState("")
   const [batchCableProfileLinkId, setBatchCableProfileLinkId] = useState<number | undefined>(undefined)
   const [selectedFilters, setSelectedFilters] = useState<{
@@ -48,6 +50,7 @@ export default function QaDashboard() {
 
   // queries
   const { data: otdrDevices, isPending: isOtdrDevicesPending } = useGetAllOtdrDevices()
+  const { data: verniers, isPending: isVerniersPending } = useGetAllVerniers()
   const { data: batches, isPending: isBatchesPending } = useGetAllBatches()
   const { data: sfgStages, isPending: isSfgStagesPending } = useGetAllSfgStages()
   const { data: cableProfiles, isPending: isCableProfilesPending } = useGetAllCableProfiles()
@@ -824,15 +827,17 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Vernier No.</label>
               <div className="col-span-7">
-                <Select defaultValue="ABC-123S">
+                <Select value={vernier} onValueChange={setVernier} disabled={isVerniersPending}>
                   <SelectTrigger className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder="Select Vernier" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="ABC-123S">ABC-123S</SelectItem>
-                      <SelectItem value="DEF-456T">DEF-456T</SelectItem>
-                      <SelectItem value="GHI-789U">GHI-789U</SelectItem>
+                      {verniers?.map((vernier, id) => (
+                        <SelectItem key={id} value={vernier.id.toString()}>
+                          {vernier.vernier_no}
+                        </SelectItem>
+                      ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>

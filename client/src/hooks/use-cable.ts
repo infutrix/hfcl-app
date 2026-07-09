@@ -7,6 +7,7 @@ import type {
   CableProfile,
   SaveBatchFiberTestingDataPayload,
   SfgStage,
+  VernierResponse,
 } from "@/lib/types/cable"
 import type { ApiErrorResponse } from "@/lib/types/common"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -33,6 +34,15 @@ export const useGetAllCableProfiles = () => {
   return useQuery<CableProfile[], ApiErrorResponse>({
     queryFn: Cable.getAllCableProfiles,
     queryKey: ["cable-profiles"],
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useGetAllVerniers = () => {
+  return useQuery<VernierResponse[], ApiErrorResponse>({
+    queryFn: Cable.getAllVerniers,
+    queryKey: ["verniers"],
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   })
