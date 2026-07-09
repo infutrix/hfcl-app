@@ -43,7 +43,6 @@ export default function QaDashboard() {
   const [otdr, setOtdr] = useState("")
   const [sfgStage, setSfgStage] = useState("")
   const [batch, setBatch] = useState("")
-  const [vernier, setVernier] = useState("")
   const [cableProfile, setCableProfile] = useState("")
   const [batchCableProfileLinkId, setBatchCableProfileLinkId] = useState<number | undefined>(undefined)
   const [selectedFilters, setSelectedFilters] = useState<{
@@ -271,6 +270,7 @@ export default function QaDashboard() {
   // initialize cable physical parameters when batch fiber testing data loads
   useEffect(() => {
     if (batchFiberTestingData) {
+      setCablePhysicalParameters(null)
       const physicalParameters: Partial<BatchCablePhysicalParametersPayload> = {
         vernier_id: batchFiberTestingData.batch_cable_profile.physical_params?.vernier?.id,
         iem: batchFiberTestingData.batch_cable_profile.physical_params?.iem,
@@ -704,7 +704,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">IEM</label>
               <Input
                 className="col-span-7"
-                value={cablePhysicalParameters?.iem}
+                value={cablePhysicalParameters?.iem ?? ""}
                 onChange={(e) => setCablePhysicalParameters({ ...cablePhysicalParameters, iem: e.target.value })}
               />
             </div>
@@ -712,7 +712,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">OEM/Length of SFG (m)</label>
               <Input
                 className="col-span-7"
-                value={cablePhysicalParameters?.oem_length_of_sfg_m}
+                value={cablePhysicalParameters?.oem_length_of_sfg_m ?? ""}
                 onChange={(e) =>
                   setCablePhysicalParameters({ ...cablePhysicalParameters, oem_length_of_sfg_m: e.target.value })
                 }
@@ -722,7 +722,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Inner Sheath (mm)</label>
               <Input
                 className="col-span-7"
-                value={cablePhysicalParameters?.inner_sheath_mm}
+                value={cablePhysicalParameters?.inner_sheath_mm ?? ""}
                 onChange={(e) =>
                   setCablePhysicalParameters({ ...cablePhysicalParameters, inner_sheath_mm: e.target.value })
                 }
@@ -732,7 +732,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Outer Sheath (mm)</label>
               <Input
                 className="col-span-7"
-                value={cablePhysicalParameters?.outer_sheath_mm}
+                value={cablePhysicalParameters?.outer_sheath_mm ?? ""}
                 onChange={(e) =>
                   setCablePhysicalParameters({ ...cablePhysicalParameters, outer_sheath_mm: e.target.value })
                 }
@@ -742,7 +742,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Cable Dia (mm)</label>
               <Input
                 className="col-span-7"
-                value={cablePhysicalParameters?.cable_dia_mm}
+                value={cablePhysicalParameters?.cable_dia_mm ?? ""}
                 onChange={(e) =>
                   setCablePhysicalParameters({ ...cablePhysicalParameters, cable_dia_mm: e.target.value })
                 }
@@ -752,7 +752,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Stripability/Rib Separation</label>
               <div className="col-span-7">
                 <Select
-                  defaultValue="OK"
+                  // defaultValue="OK"
                   value={cablePhysicalParameters?.stripability_rib_separation}
                   onValueChange={(value: OK_NOT_OK) =>
                     setCablePhysicalParameters({
@@ -780,7 +780,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Visual Inspection</label>
               <div className="col-span-7">
                 <Select
-                  defaultValue="OK"
+                  // defaultValue="OK"
                   value={cablePhysicalParameters?.visual_inspection}
                   onValueChange={(value: OK_NOT_OK) =>
                     setCablePhysicalParameters({
@@ -809,7 +809,7 @@ export default function QaDashboard() {
                 <label className="col-span-3 font-medium text-foreground">WPT</label>
                 <div className="col-span-2">
                   <Select
-                    defaultValue="OK"
+                    // defaultValue="OK"
                     value={cablePhysicalParameters?.wpt}
                     onValueChange={(value: OK_NOT_OK) =>
                       setCablePhysicalParameters({
@@ -837,7 +837,7 @@ export default function QaDashboard() {
                 <label className="col-span-3 font-medium text-foreground">Drip</label>
                 <div className="col-span-2">
                   <Select
-                    defaultValue="OK"
+                    // defaultValue="OK"
                     value={cablePhysicalParameters?.wpt_drip}
                     onValueChange={(value: OK_NOT_OK) =>
                       setCablePhysicalParameters({
@@ -866,7 +866,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Sheath Removal (R/LC)</label>
               <div className="col-span-7">
                 <Select
-                  defaultValue="OK"
+                  // defaultValue="OK"
                   value={cablePhysicalParameters?.sheath_removal_r_lc}
                   onValueChange={(value: OK_NOT_OK) =>
                     setCablePhysicalParameters({
@@ -894,7 +894,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Tube ID/OD (nm)</label>
               <Input
                 className="col-span-7"
-                value={cablePhysicalParameters?.tube_id_od_nm}
+                value={cablePhysicalParameters?.tube_id_od_nm ?? ""}
                 onChange={(e) =>
                   setCablePhysicalParameters({ ...cablePhysicalParameters, tube_id_od_nm: e.target.value })
                 }
@@ -904,7 +904,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">FRP Dia (nm)</label>
               <Input
                 className="col-span-7"
-                value={cablePhysicalParameters?.frp_dia_nm}
+                value={cablePhysicalParameters?.frp_dia_nm ?? ""}
                 onChange={(e) => setCablePhysicalParameters({ ...cablePhysicalParameters, frp_dia_nm: e.target.value })}
               />
             </div>
@@ -912,7 +912,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Fiber Seg of Ribbon</label>
               <div className="col-span-7">
                 <Select
-                  defaultValue="OK"
+                  // defaultValue="OK"
                   value={cablePhysicalParameters?.fiber_seg_of_ribbon}
                   onValueChange={(value: OK_NOT_OK) =>
                     setCablePhysicalParameters({
@@ -940,7 +940,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Ribbon Print Qty</label>
               <div className="col-span-7">
                 <Select
-                  defaultValue="OK"
+                  // defaultValue="OK"
                   value={cablePhysicalParameters?.ribbon_print_qty}
                   onValueChange={(value: OK_NOT_OK) =>
                     setCablePhysicalParameters({
@@ -968,7 +968,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Color of Fiber</label>
               <div className="col-span-7">
                 <Select
-                  defaultValue="OK"
+                  // defaultValue="OK"
                   value={cablePhysicalParameters?.color_of_fiber}
                   onValueChange={(value: OK_NOT_OK) =>
                     setCablePhysicalParameters({
@@ -995,7 +995,16 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-3 font-medium text-foreground">Vernier No.</label>
               <div className="col-span-7">
-                <Select value={vernier} onValueChange={setVernier} disabled={isVerniersPending}>
+                <Select
+                  value={cablePhysicalParameters?.vernier_id?.toString()}
+                  onValueChange={(value: string) =>
+                    setCablePhysicalParameters({
+                      ...cablePhysicalParameters,
+                      vernier_id: value ? parseInt(value) : undefined,
+                    })
+                  }
+                  disabled={isVerniersPending}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select Vernier" />
                   </SelectTrigger>
@@ -1015,7 +1024,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Ribbon Rub Test</label>
               <div className="col-span-7">
                 <Select
-                  defaultValue="OK"
+                  // defaultValue="OK"
                   value={cablePhysicalParameters?.ribbon_rub_test}
                   onValueChange={(value: OK_NOT_OK) =>
                     setCablePhysicalParameters({
@@ -1043,7 +1052,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Ribbon Stiffness</label>
               <div className="col-span-7">
                 <Select
-                  defaultValue="OK"
+                  // defaultValue="OK"
                   value={cablePhysicalParameters?.ribbon_stiffness}
                   onValueChange={(value: OK_NOT_OK) =>
                     setCablePhysicalParameters({
@@ -1071,7 +1080,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Ribbon Separation</label>
               <div className="col-span-7">
                 <Select
-                  defaultValue="OK"
+                  // defaultValue="OK"
                   value={cablePhysicalParameters?.ribbon_separation}
                   onValueChange={(value: OK_NOT_OK) =>
                     setCablePhysicalParameters({
@@ -1099,7 +1108,7 @@ export default function QaDashboard() {
               <label className="col-span-3 font-medium text-foreground">Status</label>
               <div className="col-span-7">
                 <Select
-                  defaultValue="PASS"
+                  // defaultValue="PASS"
                   value={cablePhysicalParameters?.status}
                   onValueChange={(value: "PENDING" | "PASS") =>
                     setCablePhysicalParameters({
@@ -1126,7 +1135,6 @@ export default function QaDashboard() {
                   saveBatchCablePhysicalParameters({
                     ...cablePhysicalParameters,
                     batch_cable_profile_id: batchCableProfileLinkId,
-                    vernier_id: vernier ? parseInt(vernier) : undefined,
                   })
                 }
                 disabled={
