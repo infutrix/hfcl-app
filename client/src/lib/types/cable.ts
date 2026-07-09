@@ -33,7 +33,7 @@ export type BatchCablePhysicalParametersPayload = {
   status: "PENDING" | "PASS"
 }
 
-export const OK_NOT_OK = ["OK", "NOT OK", "N/A"] as const
+export const OK_NOT_OK = ["OK", "Not Ok", "N/A"] as const
 export type OK_NOT_OK = (typeof OK_NOT_OK)[number]
 
 export type BatchCableProfileLinkResponse = {
@@ -189,7 +189,36 @@ type BaseFiberRow = {
 export type BatchFiberTestingData = {
   headers: Header[]
   rows: BaseFiberRow[]
-
+  batch_cable_profile: {
+    physical_params: Partial<{
+      id: number
+      vernier: null | {
+        id: number
+        status: boolean
+        vernier_no: string
+      }
+      iem: string
+      oem_length_of_sfg_m: string
+      inner_sheath_mm: string
+      outer_sheath_mm: string
+      cable_dia_mm: string
+      tube_id_od_nm: string
+      frp_dia_nm: string
+      stripability_rib_separation: OK_NOT_OK
+      visual_inspection: OK_NOT_OK
+      wpt: OK_NOT_OK
+      wpt_drip: OK_NOT_OK
+      sheath_removal_r_lc: OK_NOT_OK
+      fiber_seg_of_ribbon: OK_NOT_OK
+      ribbon_print_qty: OK_NOT_OK
+      color_of_fiber: OK_NOT_OK
+      ribbon_rub_test: OK_NOT_OK
+      ribbon_stiffness: OK_NOT_OK
+      ribbon_separation: OK_NOT_OK
+      remark: string
+      status: "PASS" | "PENDING"
+    }>
+  }
   colorProfile: {
     cable_type: CableType
   }

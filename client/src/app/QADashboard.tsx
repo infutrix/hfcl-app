@@ -27,6 +27,7 @@ import {
   useGetAllSfgStages,
   useGetAllVerniers,
   useGetBatchFiberTestingData,
+  useSaveBatchCablePhysicalParameters,
   useSaveBatchCableProfileLink,
   useSaveBatchFiberTestingData,
 } from "@/hooks/use-cable"
@@ -66,6 +67,8 @@ export default function QaDashboard() {
   // mutations
   const { mutateAsync: saveBatchCableProfileLink, isPending: isSaveBatchCableProfileLinkPending } =
     useSaveBatchCableProfileLink()
+  const { mutate: saveBatchCablePhysicalParameters, isPending: isSaveBatchCablePhysicalParametersPending } =
+    useSaveBatchCablePhysicalParameters()
   const saveBatchFiberTestingData = useSaveBatchFiberTestingData()
   const connectOtdr = useConnectOtdr()
   const runSkippyMetricsWithImage = useRunSkippyMetricsWithImage()
@@ -264,6 +267,37 @@ export default function QaDashboard() {
       setSelectedFilters((prev) => ({ ...prev, attribute2_value: uniqueAttribute2_values[0] }))
     }
   }, [uniqueAttribute1_values, uniqueAttribute2_values])
+
+  // initialize cable physical parameters when batch fiber testing data loads
+  useEffect(() => {
+    if (batchFiberTestingData) {
+      const physicalParameters: Partial<BatchCablePhysicalParametersPayload> = {
+        vernier_id: batchFiberTestingData.batch_cable_profile.physical_params?.vernier?.id,
+        iem: batchFiberTestingData.batch_cable_profile.physical_params?.iem,
+        oem_length_of_sfg_m: batchFiberTestingData.batch_cable_profile.physical_params?.oem_length_of_sfg_m,
+        inner_sheath_mm: batchFiberTestingData.batch_cable_profile.physical_params?.inner_sheath_mm,
+        outer_sheath_mm: batchFiberTestingData.batch_cable_profile.physical_params?.outer_sheath_mm,
+        cable_dia_mm: batchFiberTestingData.batch_cable_profile.physical_params?.cable_dia_mm,
+        tube_id_od_nm: batchFiberTestingData.batch_cable_profile.physical_params?.tube_id_od_nm,
+        frp_dia_nm: batchFiberTestingData.batch_cable_profile.physical_params?.frp_dia_nm,
+        stripability_rib_separation:
+          batchFiberTestingData.batch_cable_profile.physical_params?.stripability_rib_separation,
+        visual_inspection: batchFiberTestingData.batch_cable_profile.physical_params?.visual_inspection,
+        wpt: batchFiberTestingData.batch_cable_profile.physical_params?.wpt,
+        wpt_drip: batchFiberTestingData.batch_cable_profile.physical_params?.wpt_drip,
+        sheath_removal_r_lc: batchFiberTestingData.batch_cable_profile.physical_params?.sheath_removal_r_lc,
+        fiber_seg_of_ribbon: batchFiberTestingData.batch_cable_profile.physical_params?.fiber_seg_of_ribbon,
+        ribbon_print_qty: batchFiberTestingData.batch_cable_profile.physical_params?.ribbon_print_qty,
+        color_of_fiber: batchFiberTestingData.batch_cable_profile.physical_params?.color_of_fiber,
+        ribbon_rub_test: batchFiberTestingData.batch_cable_profile.physical_params?.ribbon_rub_test,
+        ribbon_stiffness: batchFiberTestingData.batch_cable_profile.physical_params?.ribbon_stiffness,
+        ribbon_separation: batchFiberTestingData.batch_cable_profile.physical_params?.ribbon_separation,
+        remark: batchFiberTestingData.batch_cable_profile.physical_params?.remark,
+        status: batchFiberTestingData.batch_cable_profile.physical_params?.status,
+      }
+      setCablePhysicalParameters(physicalParameters)
+    }
+  }, [batchFiberTestingData])
 
   return (
     <div className="grid grid-cols-12 gap-2 px-2 py-4">
@@ -650,7 +684,12 @@ export default function QaDashboard() {
                 </div>
                 <div className="grid grid-cols-7 items-center gap-2">
                   <label className="col-span-1 font-medium text-foreground">Remarks</label>
-                  <Input className="col-span-6 w-full" placeholder="OTDR Test Remarks" />
+                  <Input
+                    className="col-span-6 w-full"
+                    placeholder="OTDR Test Remarks"
+                    value={cablePhysicalParameters?.remark}
+                    onChange={(e) => setCablePhysicalParameters({ ...cablePhysicalParameters, remark: e.target.value })}
+                  />
                 </div>
               </>
             )}
@@ -797,15 +836,26 @@ export default function QaDashboard() {
               <div className="col-span-5 grid grid-cols-5 items-center gap-2">
                 <label className="col-span-3 font-medium text-foreground">Drip</label>
                 <div className="col-span-2">
-                  <Select defaultValue="OK">
+                  <Select
+                    defaultValue="OK"
+                    value={cablePhysicalParameters?.wpt_drip}
+                    onValueChange={(value: OK_NOT_OK) =>
+                      setCablePhysicalParameters({
+                        ...cablePhysicalParameters,
+                        wpt_drip: value,
+                      })
+                    }
+                  >
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="OK">OK</SelectItem>
-                        <SelectItem value="NOT OK">NOT OK</SelectItem>
-                        <SelectItem value="N/A">N/A</SelectItem>
+                        {OK_NOT_OK.map((value, id) => (
+                          <SelectItem key={id} value={value}>
+                            {value}
+                          </SelectItem>
+                        ))}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -1071,7 +1121,22 @@ export default function QaDashboard() {
               </div>
             </div>
             <div className="grid grid-cols-2 items-center gap-2">
-              <Button variant="default" className="col-span-1 h-8 w-full text-xs">
+              <Button
+                onClick={() =>
+                  saveBatchCablePhysicalParameters({
+                    ...cablePhysicalParameters,
+                    batch_cable_profile_id: batchCableProfileLinkId,
+                    vernier_id: vernier ? parseInt(vernier) : undefined,
+                  })
+                }
+                disabled={
+                  isSaveBatchCablePhysicalParametersPending ||
+                  isBatchFiberTestingDataLoading ||
+                  !batchCableProfileLinkId
+                }
+                variant="default"
+                className="col-span-1 h-8 w-full text-xs"
+              >
                 Save Results <Save />
               </Button>
               <Button variant="secondary" disabled className="col-span-1 h-8 w-full text-xs">

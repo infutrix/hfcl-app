@@ -1,6 +1,7 @@
 import apiCms from "../api/http-client-cms"
 import type {
   Batch,
+  BatchCablePhysicalParametersPayload,
   BatchCableProfileLinkPayload,
   BatchCableProfileLinkResponse,
   BatchFiberTestingData,
@@ -25,6 +26,10 @@ export default class Cable {
 
   static async saveBatchCableProfileLink(data: BatchCableProfileLinkPayload): Promise<BatchCableProfileLinkResponse> {
     return await apiCms.post("/batch-cable-profiles", data)
+  }
+
+  static async saveBatchCablePhysicalParameters(data: Partial<BatchCablePhysicalParametersPayload>): Promise<void> {
+    return await apiCms.post("/batch-physical-params", data)
   }
 
   static async getBatchFiberTestingData(batchCableProfileLinkId: number): Promise<BatchFiberTestingData> {

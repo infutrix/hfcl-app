@@ -1,6 +1,7 @@
 import Cable from "@/lib/repositories/cable.repository"
 import type {
   Batch,
+  BatchCablePhysicalParametersPayload,
   BatchCableProfileLinkPayload,
   BatchCableProfileLinkResponse,
   BatchFiberTestingData,
@@ -61,6 +62,18 @@ export const useGetBatchFiberTestingData = (batchCableProfileLinkId: number) => 
 export const useSaveBatchCableProfileLink = () => {
   return useMutation<BatchCableProfileLinkResponse, ApiErrorResponse, BatchCableProfileLinkPayload>({
     mutationFn: Cable.saveBatchCableProfileLink,
+  })
+}
+
+export const useSaveBatchCablePhysicalParameters = () => {
+  const queryClient = useQueryClient()
+  return useMutation<void, ApiErrorResponse, Partial<BatchCablePhysicalParametersPayload>>({
+    mutationFn: Cable.saveBatchCablePhysicalParameters,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["batch-fiber-testing-data"],
+      })
+    },
   })
 }
 
