@@ -16,6 +16,7 @@ import {
   CableTypeEnum,
   RunSkippyMetricsWithImageDto,
 } from './dto/run-skippy-metrics-with-image.dto';
+import { RunSkippyLengthAndIorDto } from './dto/run-skippy-length-and-ior.dto';
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
@@ -43,6 +44,10 @@ export class OtdrService implements OnModuleDestroy {
     'source:wavelength 1625; *wai; initiate; *wai; trace:mdloss?';
   private readonly iorAt1310Command =
     'source:wavelength 1310; *wai; sense:fiber:ior?';
+  private readonly iorAt1550Command =
+    'source:wavelength 1550; *wai; sense:fiber:ior?';
+  private readonly iorAt1625Command =
+    'source:wavelength 1625; *wai; sense:fiber:ior?';
   private readonly initiateStateCommand = 'INITiate?';
   private readonly bCursorCommand = 'sense:bcursor?';
   private readonly aCursorCommand = 'sense:acursor?';
@@ -126,6 +131,96 @@ export class OtdrService implements OnModuleDestroy {
     return {
       command,
       response,
+    };
+  }
+
+  async runSkippyLengthAndIor(
+    runSkippyLengthAndIorDto: RunSkippyLengthAndIorDto,
+  ) {
+    const { timeoutMs, developerMode, testAt } = runSkippyLengthAndIorDto;
+    const ior: {
+      '1310'?: number | null;
+      '1550'?: number | null;
+      '1625'?: number | null;
+    } = {
+      '1310': null,
+      '1550': null,
+      '1625': null,
+    };
+
+    if (developerMode) {
+      return {
+        message: 'Skippy length and IOR executed successfully.',
+        readiness: {
+          ready: true,
+          attempts: 1,
+          raw: 'INITiate? response',
+        },
+        length: 0.1,
+        ior: {
+          '1310': 0.15,
+          '1550': 0.25,
+          '1625': 0.35,
+        },
+      };
+    }
+
+    const metricsResult = await this.enqueueCommand(async () => {
+      const readyCheck = await this.waitUntilOtdrReady(timeoutMs);
+      if (testAt['1310']) {
+        const iorResponse1310 = await this.sendCommand(
+          this.iorAt1310Command,
+          timeoutMs,
+        );
+        const iorValue1310 = this.extractFirstNumber(iorResponse1310);
+        ior['1310'] = iorValue1310;
+      }
+      if (testAt['1550']) {
+        const iorResponse1550 = await this.sendCommand(
+          this.iorAt1550Command,
+          timeoutMs,
+        );
+        const iorValue1550 = this.extractFirstNumber(iorResponse1550);
+        ior['1550'] = iorValue1550;
+      }
+      if (testAt['1625']) {
+        const iorResponse1625 = await this.sendCommand(
+          this.iorAt1625Command,
+          timeoutMs,
+        );
+        const iorValue1625 = this.extractFirstNumber(iorResponse1625);
+        ior['1625'] = iorValue1625;
+      }
+
+      const bCursorResponse = await this.sendCommand(
+        this.bCursorCommand,
+        timeoutMs,
+      );
+      const aCursorResponse = await this.sendCommand(
+        this.aCursorCommand,
+        timeoutMs,
+      );
+
+      const bCursor = this.extractFirstNumber(bCursorResponse);
+      const aCursor = this.extractFirstNumber(aCursorResponse);
+      // length in kilometers
+      const length =
+        aCursor !== null && bCursor !== null
+          ? Math.abs(bCursor - aCursor)
+          : null;
+
+      return {
+        readiness: readyCheck,
+        ior: ior,
+        length: length,
+      };
+    });
+
+    return {
+      message: 'Skippy metrics with image executed successfully.',
+      ior: metricsResult.ior,
+      length: metricsResult.length,
+      readiness: metricsResult.readiness,
     };
   }
 
@@ -746,25 +841,3 @@ export class OtdrService implements OnModuleDestroy {
     });
   }
 }
-
-//   const bCursorResponse = await this.sendCommand(
-//     this.bCursorCommand,
-//     timeoutMs,
-//   );
-//   const aCursorResponse = await this.sendCommand(
-//     this.aCursorCommand,
-//     timeoutMs,
-//   );
-//   const iorResponse = await this.sendCommand(
-//     this.iorAt1310Command,
-//     timeoutMs,
-//   );
-
-// const bCursor = this.extractFirstNumber(bCursorResponse);
-// const aCursor = this.extractFirstNumber(aCursorResponse);
-// const iorValue = this.extractFirstNumber(iorResponse);
-
-// const length =
-//   aCursor !== null && bCursor !== null
-//     ? Math.abs(bCursor - aCursor)
-//     : null;
