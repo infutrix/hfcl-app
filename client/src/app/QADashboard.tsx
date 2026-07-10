@@ -666,21 +666,15 @@ export default function QaDashboard() {
                 </div>
                 <div className="grid grid-cols-7 items-center gap-2">
                   <label className="col-span-1 font-medium text-foreground">(Min)</label>
-                  <Input readOnly className="col-span-1" />
-                  <Input readOnly className="col-span-1" />
-                  <Input readOnly className="col-span-1" />
-                  <Input readOnly className="col-span-1" />
-                  <Input readOnly className="col-span-1" />
-                  <Input readOnly className="col-span-1" />
+                  {batchFiberTestingData?.colorProfile.physical_dimensions[0].map((data, id) => (
+                    <Input readOnly className="col-span-1" key={id} value={data.value} />
+                  ))}
                 </div>
                 <div className="grid grid-cols-7 items-center gap-2">
                   <label className="col-span-1 font-medium text-foreground">(Max)</label>
-                  <Input readOnly className="col-span-1" />
-                  <Input readOnly className="col-span-1" />
-                  <Input readOnly className="col-span-1" />
-                  <Input readOnly className="col-span-1" />
-                  <Input readOnly className="col-span-1" />
-                  <Input readOnly className="col-span-1" />
+                  {batchFiberTestingData?.colorProfile.physical_dimensions[1].map((data, id) => (
+                    <Input readOnly className="col-span-1" key={id} value={data.value} />
+                  ))}
                 </div>
                 <div className="grid grid-cols-7 items-center gap-2">
                   <label className="col-span-1 font-medium text-foreground">Remarks</label>

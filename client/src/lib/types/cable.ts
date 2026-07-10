@@ -221,6 +221,7 @@ export type BatchFiberTestingData = {
   }
   colorProfile: {
     cable_type: CableType
+    physical_dimensions: [Array<{ key: string; value: number }>, Array<{ key: string; value: number }>]
   }
 }
 
