@@ -19,6 +19,7 @@ import {
   useConnectOtdr,
   useGetAllOtdrDevices,
   useGetOtdrConnectionStatus,
+  useRunSkippyLengthAndIor,
   useRunSkippyMetricsWithImage,
 } from "@/hooks/use-otdr"
 import {
@@ -29,6 +30,7 @@ import {
   useGetBatchFiberTestingData,
   useSaveBatchCablePhysicalParameters,
   useSaveBatchCableProfileLink,
+  useSaveBatchFiberLengthAndIor,
   useSaveBatchFiberTestingData,
 } from "@/hooks/use-cable"
 import { useLogout, useMe } from "@/hooks/use-auth"
@@ -49,7 +51,6 @@ export default function QaDashboard() {
     attribute1_value?: string
     attribute2_value?: string
   }>({})
-  // const [colorCoding, setColorCoding] = useState("")
 
   // queries
   const { data: otdrDevices, isPending: isOtdrDevicesPending } = useGetAllOtdrDevices()
@@ -69,9 +70,55 @@ export default function QaDashboard() {
   const { mutate: saveBatchCablePhysicalParameters, isPending: isSaveBatchCablePhysicalParametersPending } =
     useSaveBatchCablePhysicalParameters()
   const saveBatchFiberTestingData = useSaveBatchFiberTestingData()
+  const saveBatchFiberLengthAndIor = useSaveBatchFiberLengthAndIor()
   const connectOtdr = useConnectOtdr()
   const runSkippyMetricsWithImage = useRunSkippyMetricsWithImage()
-  const handleStartTesting = async () => {
+  const runSkippyLengthAndIor = useRunSkippyLengthAndIor()
+
+  const handleStartTestingLengthAndIor = async () => {
+    const result = await runSkippyLengthAndIor.mutateAsync({
+      timeoutMs: 10000,
+      testAt: {
+        "1310": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1310),
+        "1550": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1550),
+        "1625": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1625),
+      },
+      developerMode: import.meta.env.DEV,
+    })
+
+    await saveBatchFiberLengthAndIor.mutateAsync({
+      batch_cable_profile_id: batchCableProfileLinkId || 0,
+      otdr_length_km: result.length || 0,
+      wavelength_testing: [
+        ...(result.ior[1310] !== undefined
+          ? [
+              {
+                ior_value_in_nm: "1310",
+                fiber_value: result.ior[1310]?.toString() || "",
+              },
+            ]
+          : []),
+        ...(result.ior[1550] !== undefined
+          ? [
+              {
+                ior_value_in_nm: "1550",
+                fiber_value: result.ior[1550]?.toString() || "",
+              },
+            ]
+          : []),
+        ...(result.ior[1625] !== undefined
+          ? [
+              {
+                ior_value_in_nm: "1625",
+                fiber_value: result.ior[1625]?.toString() || "",
+              },
+            ]
+          : []),
+      ],
+    })
+  }
+
+  const handleStartTestingLosses = async () => {
     const result = await runSkippyMetricsWithImage.mutateAsync({
       timeoutMs: 10000,
       testAt: {
@@ -88,12 +135,6 @@ export default function QaDashboard() {
       attribute2_value:
         result.colorPrediction.cableType === "IBR" ? getAttribute2Value(result.colorPrediction) : undefined,
     })
-    console.log({
-      a: getAttribute1Value(result.colorPrediction),
-      b: getAttribute2Value(result.colorPrediction),
-      c: getAttribute3Value(result.colorPrediction),
-    })
-
     await saveBatchFiberTestingData.mutateAsync({
       fibre_id:
         batchFiberTestingData?.rows.find(
@@ -131,14 +172,17 @@ export default function QaDashboard() {
       ai_response: JSON.stringify(result.colorPrediction),
     })
   }
+
   const handleConnect = async () => {
     await connectOtdr.mutateAsync({ connectionType: "connect", developerMode: import.meta.env.DEV })
     await refetchOtdrStatus()
   }
+
   const handleDisconnect = async () => {
     await connectOtdr.mutateAsync({ connectionType: "disconnect", developerMode: import.meta.env.DEV })
     await refetchOtdrStatus()
   }
+
   const logout = useLogout()
 
   // derived states
@@ -515,7 +559,11 @@ export default function QaDashboard() {
           <div className="space-y-2">
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">OTDR Length (km)</label>
-              <Input readOnly className="col-span-6" />
+              <Input
+                readOnly
+                className="col-span-6"
+                value={batchFiberTestingData?.batch_cable_profile.otdr_length_km ?? ""}
+              />
             </div>
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">IOR</label>
@@ -528,9 +576,20 @@ export default function QaDashboard() {
             <div className="grid grid-cols-10 items-center gap-2">
               <label className="col-span-2 font-medium text-foreground">Fiber</label>
               {selectedCableProfile?.wavelength_configs.map((config, id) => (
-                <Input key={id} readOnly id={config.wavelength.toString()} className="col-span-2" />
+                <Input
+                  key={id}
+                  readOnly
+                  value={
+                    batchFiberTestingData?.batch_cable_profile.wavelength_testing.find(
+                      (e) => parseInt(e.ior_value_in_nm) === config.wavelength
+                    )?.fiber_value ?? ""
+                  }
+                  id={config.wavelength.toString()}
+                  className="col-span-2"
+                />
               ))}
               <Button
+                onClick={handleStartTestingLengthAndIor}
                 disabled={
                   otdrStatus?.state !== "connected" ||
                   !checkIfAllSelected ||
@@ -552,7 +611,7 @@ export default function QaDashboard() {
           <h2 className="absolute -top-2 bg-background text-sm font-semibold">OTDR Losses Testing</h2>
           <div className="space-y-2">
             <Button
-              onClick={handleStartTesting}
+              onClick={handleStartTestingLosses}
               disabled={
                 otdrStatus?.state !== "connected" ||
                 !checkIfAllSelected ||
@@ -666,15 +725,105 @@ export default function QaDashboard() {
                 </div>
                 <div className="grid grid-cols-7 items-center gap-2">
                   <label className="col-span-1 font-medium text-foreground">(Min)</label>
-                  {batchFiberTestingData?.colorProfile.physical_dimensions[0].map((data, id) => (
-                    <Input readOnly className="col-span-1" key={id} value={data.value} />
-                  ))}
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[0].find((d) => d.key === "ID")?.value ??
+                      ""
+                    }
+                  />
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[0].find((d) => d.key === "OD")?.value ??
+                      ""
+                    }
+                  />
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[0].find((d) => d.key === "FRP")?.value ??
+                      ""
+                    }
+                  />
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[0].find((d) => d.key === "Inner")
+                        ?.value ?? ""
+                    }
+                  />
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[0].find((d) => d.key === "Outer")
+                        ?.value ?? ""
+                    }
+                  />
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[0].find((d) => d.key === "Cable dia")
+                        ?.value ?? ""
+                    }
+                  />
                 </div>
                 <div className="grid grid-cols-7 items-center gap-2">
                   <label className="col-span-1 font-medium text-foreground">(Max)</label>
-                  {batchFiberTestingData?.colorProfile.physical_dimensions[1].map((data, id) => (
-                    <Input readOnly className="col-span-1" key={id} value={data.value} />
-                  ))}
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[1].find((d) => d.key === "ID")?.value ??
+                      ""
+                    }
+                  />
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[1].find((d) => d.key === "OD")?.value ??
+                      ""
+                    }
+                  />
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[1].find((d) => d.key === "FRP")?.value ??
+                      ""
+                    }
+                  />
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[1].find((d) => d.key === "Inner")
+                        ?.value ?? ""
+                    }
+                  />
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[1].find((d) => d.key === "Outer")
+                        ?.value ?? ""
+                    }
+                  />
+                  <Input
+                    readOnly
+                    className="col-span-1"
+                    value={
+                      batchFiberTestingData?.colorProfile.physical_dimensions[1].find((d) => d.key === "Cable dia")
+                        ?.value ?? ""
+                    }
+                  />
                 </div>
                 <div className="grid grid-cols-7 items-center gap-2">
                   <label className="col-span-1 font-medium text-foreground">Remarks</label>

@@ -40,6 +40,16 @@ export type RunSkippyMetricsWithImageInput = {
   }
 }
 
+export type RunSkippyLengthAndIorInput = {
+  timeoutMs?: number
+  developerMode?: boolean
+  testAt: {
+    "1310"?: boolean
+    "1550"?: boolean
+    "1625"?: boolean
+  }
+}
+
 export type IbrColorPrediction = {
   cableType: "IBR"
   fiber: {
@@ -100,6 +110,21 @@ export type MultiTubeColorPrediction = {
 }
 
 export type ColorPrediction = IbrColorPrediction | FlatRibbonColorPrediction | MultiTubeColorPrediction
+
+export type SkippyLengthAndIorResponse = {
+  message: string
+  length: number
+  ior: {
+    "1310"?: number
+    "1550"?: number
+    "1625"?: number
+  }
+  readiness: {
+    ready: boolean
+    attempts: number
+    raw: string
+  }
+}
 
 export type SkippyMetricsWithImageResponse = {
   message: string

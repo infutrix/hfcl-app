@@ -6,6 +6,7 @@ import type {
   BatchCableProfileLinkResponse,
   BatchFiberTestingData,
   CableProfile,
+  SaveBatchFiberLengthAndIorPayload,
   SaveBatchFiberTestingDataPayload,
   SfgStage,
   VernierResponse,
@@ -39,6 +40,10 @@ export default class Cable {
   static async saveBatchFiberTestingData(data: SaveBatchFiberTestingDataPayload): Promise<void> {
     const { fibre_id, ...payload } = data
     await apiCms.put(`/batch-fiber-testing/${fibre_id}`, payload)
+  }
+
+  static async saveBatchFiberLengthAndIor(data: SaveBatchFiberLengthAndIorPayload): Promise<void> {
+    await apiCms.post("/batch-cable-wavelength-testing", data)
   }
 
   static async getAllVerniers(): Promise<VernierResponse[]> {

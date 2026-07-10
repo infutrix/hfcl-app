@@ -9,15 +9,13 @@ import type {
   SkippyMetricsWithImageResponse,
   SkippyCommandResponse,
   OtdrDevice,
+  SkippyLengthAndIorResponse,
+  RunSkippyLengthAndIorInput,
 } from "@/lib/types/otdr"
 import Otdr from "@/lib/repositories/otdr.repository"
 
 export const useConnectOtdr = () => {
-  return useMutation<
-    OtdrConnesctionResponse,
-    ApiErrorResponse,
-    CreateOtdrConnectionInput
-  >({
+  return useMutation<OtdrConnesctionResponse, ApiErrorResponse, CreateOtdrConnectionInput>({
     mutationFn: Otdr.connect,
     onSuccess: (res) => {
       Notify.success(res.message)
@@ -30,11 +28,7 @@ export const useConnectOtdr = () => {
 }
 
 export const useSendSkippyCommand = () => {
-  return useMutation<
-    SkippyCommandResponse,
-    ApiErrorResponse,
-    SendSkippyCommandInput
-  >({
+  return useMutation<SkippyCommandResponse, ApiErrorResponse, SendSkippyCommandInput>({
     mutationFn: Otdr.runSkippy,
     onError: (error) => {
       Notify.error(error.message)
@@ -43,12 +37,20 @@ export const useSendSkippyCommand = () => {
 }
 
 export const useRunSkippyMetricsWithImage = () => {
-  return useMutation<
-    SkippyMetricsWithImageResponse,
-    ApiErrorResponse,
-    RunSkippyMetricsWithImageInput
-  >({
+  return useMutation<SkippyMetricsWithImageResponse, ApiErrorResponse, RunSkippyMetricsWithImageInput>({
     mutationFn: Otdr.runSkippyMetricsWithImage,
+    onSuccess: (res) => {
+      Notify.success(res.message)
+    },
+    onError: (error) => {
+      Notify.error(error.message)
+    },
+  })
+}
+
+export const useRunSkippyLengthAndIor = () => {
+  return useMutation<SkippyLengthAndIorResponse, ApiErrorResponse, RunSkippyLengthAndIorInput>({
+    mutationFn: Otdr.runSkippyLengthAndIor,
     onSuccess: (res) => {
       Notify.success(res.message)
     },

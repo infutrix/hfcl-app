@@ -218,10 +218,18 @@ export type BatchFiberTestingData = {
       remark: string
       status: "PASS" | "PENDING"
     }>
+    otdr_length_km: number
+    wavelength_testing: Array<{
+      fiber_value: string
+      ior_value_in_nm: string // "1550.0000" use parseInt("1550.0000").toString() to get "1550"
+    }>
   }
   colorProfile: {
     cable_type: CableType
-    physical_dimensions: [Array<{ key: string; value: number }>, Array<{ key: string; value: number }>]
+    physical_dimensions: [
+      Array<{ key: "ID" | "OD" | "FRP" | "Inner" | "Outer" | "Cable dia"; value: number }>,
+      Array<{ key: "ID" | "OD" | "FRP" | "Inner" | "Outer" | "Cable dia"; value: number }>,
+    ]
   }
 }
 
@@ -237,4 +245,13 @@ export type SaveBatchFiberTestingDataPayload = {
   fiber_wavelengths: FiberWavelength[]
   ai_response: string
   fibre_id: number
+}
+
+export type SaveBatchFiberLengthAndIorPayload = {
+  batch_cable_profile_id: number
+  otdr_length_km: number
+  wavelength_testing: {
+    ior_value_in_nm: string
+    fiber_value: string
+  }[]
 }

@@ -6,6 +6,7 @@ import type {
   BatchCableProfileLinkResponse,
   BatchFiberTestingData,
   CableProfile,
+  SaveBatchFiberLengthAndIorPayload,
   SaveBatchFiberTestingDataPayload,
   SfgStage,
   VernierResponse,
@@ -81,6 +82,18 @@ export const useSaveBatchFiberTestingData = () => {
   const queryClient = useQueryClient()
   return useMutation<void, ApiErrorResponse, SaveBatchFiberTestingDataPayload>({
     mutationFn: Cable.saveBatchFiberTestingData,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["batch-fiber-testing-data"],
+      })
+    },
+  })
+}
+
+export const useSaveBatchFiberLengthAndIor = () => {
+  const queryClient = useQueryClient()
+  return useMutation<void, ApiErrorResponse, SaveBatchFiberLengthAndIorPayload>({
+    mutationFn: Cable.saveBatchFiberLengthAndIor,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["batch-fiber-testing-data"],
