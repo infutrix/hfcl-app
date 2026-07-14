@@ -351,6 +351,15 @@ export default function QaDashboard() {
   }, [batchFiberTestingData])
 
   useEffect(() => {
+    setSearchParams({
+      batch_id: batch,
+      sfg_stage_id: sfgStage,
+      profile_id: cableProfile,
+      otdr_id: otdr,
+    })
+  }, [otdr, sfgStage, cableProfile, batch])
+
+  useEffect(() => {
     if (params_batch_id) {
       setBatch(params_batch_id)
     }
@@ -380,7 +389,7 @@ export default function QaDashboard() {
             <Badge className="bg-green-600 text-xs">{currentUser?.userRole.role}</Badge>
           </div>
           <div className="flex flex-row gap-2">
-            <Button variant="secondary" onClick={() => window.history.back()}>
+            <Button variant="secondary" onClick={() => (window.location.href = "/dashboard")}>
               Back <ArrowLeft size={16} />
             </Button>
             <Button variant="destructive" onClick={logout}>

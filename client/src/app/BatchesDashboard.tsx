@@ -102,8 +102,8 @@ export default function BatchesDashboard() {
 
                 <TableBody>
                   {batches?.map((batch, id) => (
-                    <TableRow key={batch.id}>
-                      <TableCell className="font-medium">{batch.id}</TableCell>
+                    <TableRow key={id}>
+                      <TableCell className="font-medium">{id + 1}</TableCell>
 
                       <TableCell>{batch.batch_name}</TableCell>
                       <TableCell>{batch.status}</TableCell>
@@ -118,7 +118,7 @@ export default function BatchesDashboard() {
                         <Link
                           to={{
                             pathname: "/qa-dashboard",
-                            search: `?batch_id=${batch.id}&sfg_stage_id=${batch.sfg_stage.id}&profile_id=${batch.cable_profile.id}&otdr_id=${batch.otdr_device.id}`,
+                            search: `?batch_id=${batch.batch.id}&sfg_stage_id=${batch.sfg_stage.id}&profile_id=${batch.cable_profile.id}&otdr_id=${batch.otdr_device.id}`,
                           }}
                         >
                           <Button size="sm">
