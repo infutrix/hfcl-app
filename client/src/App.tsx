@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import NotFound from "./app/NotFound"
 import Login from "./app/Login"
 import QaDashboard from "./app/QADashboard"
+import BatchesDashboard from "./app/BatchesDashboard"
 
 const queryClient = new QueryClient()
 
@@ -14,7 +15,8 @@ export function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/dashboard" element={<QaDashboard />} />
+          <Route path="/qa-dashboard" element={<QaDashboard />} />
+          <Route path="/dashboard" element={<BatchesDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

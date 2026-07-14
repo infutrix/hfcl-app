@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { EthernetPort, Loader2, LogOut, MonitorPlay, Printer, Save } from "lucide-react"
+import { ArrowLeft, EthernetPort, Loader2, LogOut, MonitorPlay, Printer, Save } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import {
   useConnectOtdr,
@@ -357,9 +357,14 @@ export default function QaDashboard() {
             </h1>
             <Badge className="bg-green-600 text-xs">{currentUser?.userRole.role}</Badge>
           </div>
-          <Button variant="destructive" onClick={logout}>
-            Logout <LogOut size={16} />
-          </Button>
+          <div className="flex flex-row gap-2">
+            <Button variant="secondary" onClick={() => window.history.back()}>
+              Back <ArrowLeft size={16} />
+            </Button>
+            <Button variant="destructive" onClick={logout}>
+              Logout <LogOut size={16} />
+            </Button>
+          </div>
         </div>
         <Card className="relative overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
           <h2 className="absolute -top-2 bg-background text-sm font-semibold">OTDR Connectivity</h2>

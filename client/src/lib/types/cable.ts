@@ -40,6 +40,162 @@ export type BatchCableProfileLinkResponse = {
   id: number
 }
 
+export type OperatorDashboardStats = {
+  pending_count: number
+  in_progress_count: number
+  completed_count: number
+}
+
+export type OperatorBatchesResponse = {
+  id: number
+  plant: {
+    id: number
+    plant_name: string
+    location: string
+    status: true
+    created_at: string
+    modified_at: string
+  }
+  batch: {
+    id: number
+    plant: {
+      id: number
+      plant_name: string
+      location: string
+      status: boolean
+      created_at: string
+      modified_at: string
+    }
+    customer: {
+      id: number
+      name: string
+      phone: string
+      email: string
+      company_name: string
+      address: string
+      status: boolean
+      deleted: boolean
+      created_at: string
+      updated_at: string
+    }
+    batch: string
+    drum_number: string
+    fiber_type: string
+    status: boolean
+    created_at: string
+    modified_at: string
+  }
+  batch_name: string
+  cable_type: {
+    id: number
+    name: string
+    attributes: Array<{
+      attribute_name: "Strand" | "Ribbon" | "Fiber"
+      attribute_markings: boolean
+      attribute_color_count: number
+    }>
+    status: boolean
+    deleted: boolean
+    parent_type_id: null | number
+    created_at: string
+    updated_at: string
+  }
+  cable_profile: {
+    id: number
+    cable_profile_name: string
+    profile_key_value: string
+    status: boolean
+    deleted: boolean
+    created_at: string
+    modified_at: string
+  }
+  otdr_device: {
+    id: number
+    device_name: string
+    device_id: string
+    ip_address: string
+    port: number
+    manufacturer: string
+    model: string
+    serial_number: string
+    plant_id: number
+    status: boolean
+    created_at: string
+    modified_at: string
+    plant: {
+      id: number
+      plant_name: string
+      location: string
+      status: boolean
+      created_at: string
+      modified_at: string
+    }
+  }
+  otdr_length_km: number
+  operator: {
+    id: number
+    first_name: string
+    last_name: string
+    email: string
+    userRole: {
+      id: number
+      role: string
+      identifier: string
+      created_at: string
+      modified_at: string
+    }
+    role_id: number
+    plant: {
+      id: number
+      plant_name: string
+      location: string
+      status: boolean
+      created_at: string
+      modified_at: string
+    }
+    status: string
+    deleted: 0 | 1
+    created_at: string
+    modified_at: string
+  }
+  customer: {
+    id: number
+    name: string
+    phone: string
+    email: string
+    company_name: string
+    address: string
+    status: boolean
+    deleted: boolean
+    created_at: string
+    updated_at: string
+  }
+  sfg_stage: {
+    id: number
+    name: string
+    code: string
+    sequence: number
+    status: boolean
+    deleted: boolean
+    created_at: string
+    updated_at: string
+  }
+  wavelength_testing: Array<{
+    id: number
+    ior_value_in_nm: string
+    fiber_value: string
+    created_at: string
+    modified_at: string
+  }>
+  physical_params: null
+  drum_number: string
+  fiber_type: string
+  status: number
+  deleted: boolean
+  created_at: string
+  modified_at: string
+}
+
 export type Batch = {
   id: number
   plant: {

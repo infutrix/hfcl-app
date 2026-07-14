@@ -6,6 +6,8 @@ import type {
   BatchCableProfileLinkResponse,
   BatchFiberTestingData,
   CableProfile,
+  OperatorBatchesResponse,
+  OperatorDashboardStats,
   SaveBatchFiberLengthAndIorPayload,
   SaveBatchFiberTestingDataPayload,
   SfgStage,
@@ -13,6 +15,20 @@ import type {
 } from "@/lib/types/cable"
 import type { ApiErrorResponse } from "@/lib/types/common"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+
+export const useGetOperatorDashboardStats = () => {
+  return useQuery<OperatorDashboardStats, ApiErrorResponse>({
+    queryFn: Cable.getOperatorDashboardStats,
+    queryKey: ["operator-dashboard-stats"],
+  })
+}
+
+export const useGetOperatorBatches = () => {
+  return useQuery<OperatorBatchesResponse[], ApiErrorResponse>({
+    queryFn: Cable.getOperatorBatches,
+    queryKey: ["operator-batches"],
+  })
+}
 
 export const useGetAllBatches = () => {
   return useQuery<Batch[], ApiErrorResponse>({

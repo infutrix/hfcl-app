@@ -6,6 +6,8 @@ import type {
   BatchCableProfileLinkResponse,
   BatchFiberTestingData,
   CableProfile,
+  OperatorBatchesResponse,
+  OperatorDashboardStats,
   SaveBatchFiberLengthAndIorPayload,
   SaveBatchFiberTestingDataPayload,
   SfgStage,
@@ -13,6 +15,14 @@ import type {
 } from "../types/cable"
 
 export default class Cable {
+  static async getOperatorDashboardStats(): Promise<OperatorDashboardStats> {
+    return await apiCms.get("/operator-dashboard")
+  }
+
+  static async getOperatorBatches(): Promise<OperatorBatchesResponse[]> {
+    return await apiCms.get("/operator-dashboard/batches")
+  }
+
   static async getAllBatches(): Promise<Batch[]> {
     return await apiCms.get("/batches")
   }
