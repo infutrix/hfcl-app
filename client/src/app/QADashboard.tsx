@@ -49,10 +49,10 @@ export default function QaDashboard() {
 
   const [cablePhysicalParameters, setCablePhysicalParameters] =
     useState<Partial<BatchCablePhysicalParametersPayload> | null>(null)
-  const [otdr, setOtdr] = useState("")
-  const [sfgStage, setSfgStage] = useState("")
-  const [batch, setBatch] = useState("")
-  const [cableProfile, setCableProfile] = useState("")
+  const [otdr, setOtdr] = useState(params_otdr_id || "")
+  const [sfgStage, setSfgStage] = useState(params_sfg_stage_id || "")
+  const [batch, setBatch] = useState(params_batch_id || "")
+  const [cableProfile, setCableProfile] = useState(params_profile_id || "")
   const [batchCableProfileLinkId, setBatchCableProfileLinkId] = useState<number | undefined>(undefined)
   const [selectedFilters, setSelectedFilters] = useState<{
     attribute1_value?: string
@@ -358,21 +358,6 @@ export default function QaDashboard() {
       otdr_id: otdr,
     })
   }, [otdr, sfgStage, cableProfile, batch])
-
-  useEffect(() => {
-    if (params_batch_id) {
-      setBatch(params_batch_id)
-    }
-    if (params_sfg_stage_id) {
-      setSfgStage(params_sfg_stage_id)
-    }
-    if (params_profile_id) {
-      setCableProfile(params_profile_id)
-    }
-    if (params_otdr_id) {
-      setOtdr(params_otdr_id)
-    }
-  }, [params_batch_id, params_sfg_stage_id, params_profile_id, params_otdr_id])
 
   return (
     <div className="grid grid-cols-12 gap-2 px-2 py-4">
