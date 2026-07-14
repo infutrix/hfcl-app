@@ -37,9 +37,16 @@ import { useLogout, useMe } from "@/hooks/use-auth"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { ColorPrediction } from "@/lib/types/otdr"
 import { OK_NOT_OK, type BatchCablePhysicalParametersPayload } from "@/lib/types/cable"
+import { useSearchParams } from "react-router-dom"
 
 export default function QaDashboard() {
   // states
+  const [searchParams, setSearchParams] = useSearchParams()
+  const params_batch_id = searchParams.get("batch_id")
+  const params_sfg_stage_id = searchParams.get("sfg_stage_id")
+  const params_profile_id = searchParams.get("profile_id")
+  const params_otdr_id = searchParams.get("otdr_id")
+
   const [cablePhysicalParameters, setCablePhysicalParameters] =
     useState<Partial<BatchCablePhysicalParametersPayload> | null>(null)
   const [otdr, setOtdr] = useState("")
@@ -342,6 +349,21 @@ export default function QaDashboard() {
       setCablePhysicalParameters(physicalParameters)
     }
   }, [batchFiberTestingData])
+
+  useEffect(() => {
+    if (params_batch_id) {
+      setBatch(params_batch_id)
+    }
+    if (params_sfg_stage_id) {
+      setSfgStage(params_sfg_stage_id)
+    }
+    if (params_profile_id) {
+      setCableProfile(params_profile_id)
+    }
+    if (params_otdr_id) {
+      setOtdr(params_otdr_id)
+    }
+  }, [params_batch_id, params_sfg_stage_id, params_profile_id, params_otdr_id])
 
   return (
     <div className="grid grid-cols-12 gap-2 px-2 py-4">

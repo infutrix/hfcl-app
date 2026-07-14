@@ -7,6 +7,7 @@ import { useGetOperatorBatches, useGetOperatorDashboardStats } from "@/hooks/use
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
 import { useMe } from "@/hooks/use-auth"
+import { Badge } from "@/components/ui/badge"
 
 export default function BatchesDashboard() {
   const { data: currentUser, isLoading: isUserLoading } = useMe()
@@ -25,14 +26,18 @@ export default function BatchesDashboard() {
     <div className="flex flex-1 flex-col">
       <div className="@container/main flex flex-1 flex-col">
         <div className="space-y-6 p-6">
+          {/* welcome note */}
+          <div>
+            <h1 className="text-2xl font-bold">
+              Hai{" "}
+              <span className="underline">
+                {currentUser?.first_name} {currentUser?.last_name}
+              </span>
+              👋
+            </h1>
+            <Badge className="bg-green-600 text-xs">{currentUser?.userRole.role}</Badge>
+          </div>
           {/* Stats */}
-          <h1 className="text-2xl font-bold">
-            Hai{" "}
-            <span className="underline">
-              {currentUser?.first_name} {currentUser?.last_name}
-            </span>
-            👋
-          </h1>
           <div className="grid gap-6 md:grid-cols-3">
             <Card className="border-yellow-200">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -80,7 +85,7 @@ export default function BatchesDashboard() {
           {/* Table */}
           <Card>
             <CardHeader>
-              <CardTitle>Recent Batches</CardTitle>
+              <CardTitle className="font-bold">Batches</CardTitle>
             </CardHeader>
 
             <CardContent>
