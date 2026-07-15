@@ -106,7 +106,17 @@ export default function BatchesDashboard() {
                       <TableCell className="font-medium">{id + 1}</TableCell>
 
                       <TableCell>{batch.batch_name}</TableCell>
-                      <TableCell>{batch.status}</TableCell>
+                      <TableCell>
+                        {batch.status === 0 && (
+                          <span className="rounded bg-red-100 px-2 py-1 text-red-800">Pending</span>
+                        )}
+                        {batch.status === 1 && (
+                          <span className="rounded bg-blue-100 px-2 py-1 text-blue-800">In Progress</span>
+                        )}
+                        {batch.status === 2 && (
+                          <span className="rounded bg-green-100 px-2 py-1 text-green-800">Completed</span>
+                        )}
+                      </TableCell>
 
                       <TableCell>
                         {format(batch.created_at, "yyyy-MM-dd")}{" "}

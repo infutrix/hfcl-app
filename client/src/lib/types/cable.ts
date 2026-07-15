@@ -190,7 +190,7 @@ export type OperatorBatchesResponse = {
   physical_params: null
   drum_number: string
   fiber_type: string
-  status: number
+  status: 0 | 1 | 2
   deleted: boolean
   created_at: string
   modified_at: string
