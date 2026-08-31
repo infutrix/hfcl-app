@@ -279,7 +279,17 @@ export default function QaDashboard() {
       return colorPrediction.fiber?.color
     }
     if (colorPrediction.cableType === "MULTI_TUBE") {
-      return colorPrediction.fiber?.color
+      if (colorPrediction.fiber_markings?.pattern_id) {
+        if (colorPrediction.fiber_markings.pattern_id === 1) {
+          return `${colorPrediction.fiber?.color}-Ring`
+        } else if (colorPrediction.fiber_markings.pattern_id === 2) {
+          return `${colorPrediction.fiber?.color}-DoubleRing`
+        } else {
+          return `${colorPrediction.fiber?.color}`
+        }
+      } else {
+        return `${colorPrediction.fiber?.color}`
+      }
     }
   }
 

@@ -57,7 +57,7 @@ export default function BatchesDashboard() {
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium">In Progress</CardTitle>
 
-                <LoaderCircle className="h-5 w-5 animate-spin text-blue-500" />
+                <LoaderCircle className="h-5 w-5 text-blue-500" />
               </CardHeader>
 
               <CardContent>
