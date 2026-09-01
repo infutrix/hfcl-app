@@ -5,6 +5,7 @@ import type {
   CreateOtdrConnectionInput,
   OtdrConnesctionResponse,
   RunSkippyMetricsWithImageInput,
+  RunSkippyMetricsWithUploadedImageInput,
   SendSkippyCommandInput,
   SkippyMetricsWithImageResponse,
   SkippyCommandResponse,
@@ -39,6 +40,18 @@ export const useSendSkippyCommand = () => {
 export const useRunSkippyMetricsWithImage = () => {
   return useMutation<SkippyMetricsWithImageResponse, ApiErrorResponse, RunSkippyMetricsWithImageInput>({
     mutationFn: Otdr.runSkippyMetricsWithImage,
+    onSuccess: (res) => {
+      Notify.success(res.message)
+    },
+    onError: (error) => {
+      Notify.error(error.message)
+    },
+  })
+}
+
+export const useRunSkippyMetricsWithUploadedImage = () => {
+  return useMutation<SkippyMetricsWithImageResponse, ApiErrorResponse, RunSkippyMetricsWithUploadedImageInput>({
+    mutationFn: Otdr.runSkippyMetricsWithUploadedImage,
     onSuccess: (res) => {
       Notify.success(res.message)
     },

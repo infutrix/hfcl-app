@@ -4,6 +4,7 @@ import type {
   CreateOtdrConnectionInput,
   OtdrConnesctionResponse,
   RunSkippyMetricsWithImageInput,
+  RunSkippyMetricsWithUploadedImageInput,
   SendSkippyCommandInput,
   SkippyMetricsWithImageResponse,
   SkippyCommandResponse,
@@ -29,6 +30,23 @@ export default class Otdr {
     data: RunSkippyMetricsWithImageInput
   ): Promise<SkippyMetricsWithImageResponse> {
     return await api.post("/otdr/commands/skippy/metrics-with-image", data)
+  }
+
+  /**
+   * Developer-mode-only: sends a client-attached image (no camera server
+   * required) to the real AI prediction server instead of a dummy response.
+   */
+  static async runSkippyMetricsWithUploadedImage(
+    data: RunSkippyMetricsWithUploadedImageInput
+  ): Promise<SkippyMetricsWithImageResponse> {
+    const formData = new FormData()
+    formData.append("image", data.image)
+    formData.append("cableType", data.cableType)
+    formData.append("testAt", JSON.stringify(data.testAt))
+    if (data.timeoutMs !== undefined) {
+      formData.append("timeoutMs", String(data.timeoutMs))
+    }
+    return await api.post("/otdr/commands/skippy/metrics-with-image/upload", formData)
   }
 
   static async runSkippyLengthAndIor(data: RunSkippyLengthAndIorInput): Promise<SkippyLengthAndIorResponse> {

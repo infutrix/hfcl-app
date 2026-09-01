@@ -40,6 +40,17 @@ export type RunSkippyMetricsWithImageInput = {
   }
 }
 
+export type RunSkippyMetricsWithUploadedImageInput = {
+  image: File
+  timeoutMs?: number
+  cableType: CableType
+  testAt: {
+    "1310"?: boolean
+    "1550"?: boolean
+    "1625"?: boolean
+  }
+}
+
 export type RunSkippyLengthAndIorInput = {
   timeoutMs?: number
   developerMode?: boolean
@@ -90,7 +101,7 @@ export type FlatRibbonColorPrediction = {
 
 export type MultiTubeColorPrediction = {
   cableType: "MULTI_TUBE"
-  fiber: {
+  fiber_color: {
     color?: string
     confidence: number
   }

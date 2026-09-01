@@ -16,7 +16,7 @@ export enum CableTypeEnum {
   FLAT_RIBBON = 'FLAT_RIBBON',
 }
 export type CableType = CableTypeEnum;
-class TestAt {
+export class TestAt {
   @IsBoolean()
   '1310': boolean;
 

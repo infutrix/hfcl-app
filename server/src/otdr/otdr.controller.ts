@@ -1,9 +1,18 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { OtdrService } from './otdr.service';
 import { CreateConnectionDto } from './dto/create-connection.dto';
 import { SendSkippyCommandDto } from './dto/send-skippy-command.dto';
 import { RunSkippyMetricsWithImageDto } from './dto/run-skippy-metrics-with-image.dto';
 import { RunSkippyLengthAndIorDto } from './dto/run-skippy-length-and-ior.dto';
+import { RunSkippyMetricsWithUploadedImageDto } from './dto/run-skippy-metrics-with-uploaded-image.dto';
 
 @Controller('otdr')
 export class OtdrController {
@@ -37,6 +46,26 @@ export class OtdrController {
   ) {
     return this.otdrService.runSkippyMetricsWithImage(
       runSkippyMetricsWithImageDto,
+    );
+  }
+
+  /**
+   * Developer-mode-only: lets a client upload its own image (no camera
+   * server required) and still runs it through the real AI prediction
+   * server instead of returning hardcoded dummy data.
+   */
+  @Post('commands/skippy/metrics-with-image/upload')
+  @UseInterceptors(
+    FileInterceptor('image', { limits: { fileSize: 20 * 1024 * 1024 } }),
+  )
+  runSkippyMetricsWithUploadedImage(
+    @UploadedFile() image: Express.Multer.File,
+    @Body()
+    runSkippyMetricsWithUploadedImageDto: RunSkippyMetricsWithUploadedImageDto,
+  ) {
+    return this.otdrService.runSkippyMetricsWithUploadedImage(
+      image,
+      runSkippyMetricsWithUploadedImageDto,
     );
   }
 }

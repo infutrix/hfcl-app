@@ -21,6 +21,7 @@ import {
   useGetOtdrConnectionStatus,
   useRunSkippyLengthAndIor,
   useRunSkippyMetricsWithImage,
+  useRunSkippyMetricsWithUploadedImage,
 } from "@/hooks/use-otdr"
 import {
   useGetAllBatches,
@@ -58,6 +59,7 @@ export default function QaDashboard() {
     attribute1_value?: string
     attribute2_value?: string
   }>({})
+  const [devTestImage, setDevTestImage] = useState<File | null>(null)
 
   // queries
   const { data: otdrDevices, isPending: isOtdrDevicesPending } = useGetAllOtdrDevices()
@@ -80,6 +82,7 @@ export default function QaDashboard() {
   const saveBatchFiberLengthAndIor = useSaveBatchFiberLengthAndIor()
   const connectOtdr = useConnectOtdr()
   const runSkippyMetricsWithImage = useRunSkippyMetricsWithImage()
+  const runSkippyMetricsWithUploadedImage = useRunSkippyMetricsWithUploadedImage()
   const runSkippyLengthAndIor = useRunSkippyLengthAndIor()
 
   const handleStartTestingLengthAndIor = async () => {
@@ -126,22 +129,40 @@ export default function QaDashboard() {
   }
 
   const handleStartTestingLosses = async () => {
-    const result = await runSkippyMetricsWithImage.mutateAsync({
-      timeoutMs: 10000,
-      testAt: {
-        "1310": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1310),
-        "1550": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1550),
-        "1625": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1625),
-      },
-      developerMode: import.meta.env.DEV,
-      cableType: selectedCableProfile?.colorProfile.cable_type || "IBR",
-    })
+    const testAt = {
+      "1310": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1310),
+      "1550": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1550),
+      "1625": !!selectedCableProfile?.wavelength_configs.find((w) => w.wavelength === 1625),
+    }
+    const cableType = selectedCableProfile?.colorProfile.cable_type || "IBR"
+
+    // In development there's no camera server, so an attached image (sent to the
+    // real AI prediction server) is used in place of the hardcoded dummy response.
+    const result =
+      import.meta.env.DEV && devTestImage
+        ? await runSkippyMetricsWithUploadedImage.mutateAsync({
+            image: devTestImage,
+            timeoutMs: 10000,
+            testAt,
+            cableType,
+          })
+        : await runSkippyMetricsWithImage.mutateAsync({
+            timeoutMs: 10000,
+            testAt,
+            developerMode: import.meta.env.DEV,
+            cableType,
+          })
 
     setSelectedFilters({
       attribute1_value: getAttribute1Value(result.colorPrediction),
       attribute2_value:
         result.colorPrediction.cableType === "IBR" ? getAttribute2Value(result.colorPrediction) : undefined,
     })
+    console.log(
+      getAttribute1Value(result.colorPrediction),
+      getAttribute2Value(result.colorPrediction),
+      getAttribute3Value(result.colorPrediction)
+    )
     await saveBatchFiberTestingData.mutateAsync({
       fibre_id:
         batchFiberTestingData?.rows.find(
@@ -272,6 +293,7 @@ export default function QaDashboard() {
   }
 
   function getAttribute2Value(colorPrediction: ColorPrediction) {
+    console.log(colorPrediction)
     if (colorPrediction.cableType === "IBR") {
       return `R${colorPrediction.ribbon?.markings_score}`
     }
@@ -281,14 +303,14 @@ export default function QaDashboard() {
     if (colorPrediction.cableType === "MULTI_TUBE") {
       if (colorPrediction.fiber_markings?.pattern_id) {
         if (colorPrediction.fiber_markings.pattern_id === 1) {
-          return `${colorPrediction.fiber?.color}-Ring`
+          return `${colorPrediction.fiber_color?.color}-Ring`
         } else if (colorPrediction.fiber_markings.pattern_id === 2) {
-          return `${colorPrediction.fiber?.color}-DoubleRing`
+          return `${colorPrediction.fiber_color?.color}-DoubleRing`
         } else {
-          return `${colorPrediction.fiber?.color}`
+          return `${colorPrediction.fiber_color?.color}`
         }
       } else {
-        return `${colorPrediction.fiber?.color}`
+        return `${colorPrediction.fiber_color?.color}`
       }
     }
   }
@@ -641,19 +663,36 @@ export default function QaDashboard() {
         <Card className="relative h-full overflow-visible rounded-none border border-muted-foreground p-4 ring-0">
           <h2 className="absolute -top-2 bg-background text-sm font-semibold">OTDR Losses Testing</h2>
           <div className="space-y-2">
+            {import.meta.env.DEV && (
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Dev mode: attach image (no camera server) — sent to the AI server as-is
+                </label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  className="h-8 text-xs"
+                  onChange={(e) => setDevTestImage(e.target.files?.[0] ?? null)}
+                />
+              </div>
+            )}
             <Button
               onClick={handleStartTestingLosses}
               disabled={
                 otdrStatus?.state !== "connected" ||
                 !checkIfAllSelected ||
                 runSkippyMetricsWithImage.isPending ||
+                runSkippyMetricsWithUploadedImage.isPending ||
                 isBatchFiberTestingDataLoading ||
                 isSaveBatchCableProfileLinkPending ||
                 isBatchFiberTestingDataLoading
               }
               className="h-8 w-full text-xs"
             >
-              {runSkippyMetricsWithImage.isPending ? "Testing..." : "Test"} <MonitorPlay />
+              {runSkippyMetricsWithImage.isPending || runSkippyMetricsWithUploadedImage.isPending
+                ? "Testing..."
+                : "Test"}{" "}
+              <MonitorPlay />
             </Button>
             {(isBatchFiberTestingDataLoading || isSaveBatchCableProfileLinkPending) && (
               <Loader2 className="m-auto size-5 animate-spin" />

@@ -17,6 +17,7 @@ import {
   RunSkippyMetricsWithImageDto,
 } from './dto/run-skippy-metrics-with-image.dto';
 import { RunSkippyLengthAndIorDto } from './dto/run-skippy-length-and-ior.dto';
+import { RunSkippyMetricsWithUploadedImageDto } from './dto/run-skippy-metrics-with-uploaded-image.dto';
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
@@ -52,7 +53,7 @@ export class OtdrService implements OnModuleDestroy {
   private readonly bCursorCommand = 'sense:bcursor?';
   private readonly aCursorCommand = 'sense:acursor?';
   private readonly runStorageDir = join(process.cwd(), 'public', 'otdr-runs');
-  private readonly basePredictUrl = 'http://192.168.100.239:8000';
+  private readonly basePredictUrl = 'http://192.168.100.160:8000';
   private readonly iBrPredictUrl = `${this.basePredictUrl}/api/v1/predict/ibr`;
   private readonly flatRibbonPredictUrl = `${this.basePredictUrl}/api/v1/predict/flat_ribbon`;
   private readonly multiTubPredictUrl = `${this.basePredictUrl}/api/v1/predict/multi_tube`;
@@ -279,6 +280,24 @@ export class OtdrService implements OnModuleDestroy {
               },
             ],
           },
+          fiber_color: {
+            color: 'Blue',
+            confidence: 0.9761709570884705,
+            top3: [
+              {
+                name: 'Blue',
+                conf: 0.9761709570884705,
+              },
+              {
+                name: 'Yellow',
+                conf: 0.02356698177754879,
+              },
+              {
+                name: 'Green',
+                conf: 0.000038417812902480364,
+              },
+            ],
+          },
           ribbon: {
             markings_score: 1,
             markings: 1,
@@ -390,6 +409,96 @@ export class OtdrService implements OnModuleDestroy {
       runId,
       loss: metricsResult.loss,
       readiness: metricsResult.readiness,
+      colorPrediction: {
+        cableType,
+        ...colorPrediction,
+      },
+      savedFiles: {
+        image: join('public', 'otdr-runs', imageFileName),
+        record: join('public', 'otdr-runs', recordFileName),
+      },
+    };
+  }
+
+  /**
+   * Developer-mode-only path: no camera server available, so the image comes
+   * from a client-side file picker instead of `fetchCapturedImage()`. It is
+   * still sent to the real AI color-prediction server so predictions reflect
+   * an actual image rather than hardcoded dummy data.
+   */
+  async runSkippyMetricsWithUploadedImage(
+    image: Express.Multer.File | undefined,
+    dto: RunSkippyMetricsWithUploadedImageDto,
+  ) {
+    if (!image) {
+      throw new BadRequestException('An image file is required.');
+    }
+
+    if (!image.mimetype?.startsWith('image/')) {
+      throw new BadRequestException('Uploaded file must be an image.');
+    }
+
+    const { cableType, testAt } = dto;
+    const runId = `${Date.now()}-${randomUUID()}`;
+
+    const uploadedImage: UploadedImageFile = {
+      originalname: image.originalname,
+      mimetype: image.mimetype,
+      size: image.size,
+      buffer: image.buffer,
+    };
+
+    await mkdir(this.runStorageDir, { recursive: true });
+
+    const imageExtension = this.resolveImageExtension(
+      uploadedImage.originalname,
+      uploadedImage.mimetype,
+    );
+    const imageFileName = `${runId}${imageExtension}`;
+    const imageFilePath = join(this.runStorageDir, imageFileName);
+
+    await writeFile(imageFilePath, uploadedImage.buffer);
+
+    const colorPrediction = await this.predictIbrColor(
+      uploadedImage,
+      cableType,
+    );
+
+    const loss = {
+      '1310': testAt['1310'] ? 0.15 : null,
+      '1550': testAt['1550'] ? 0.25 : null,
+      '1625': testAt['1625'] ? 0.35 : null,
+    };
+
+    const recordFileName = `${runId}.json`;
+    const recordFilePath = join(this.runStorageDir, recordFileName);
+
+    const record = {
+      runId,
+      loss,
+      colorPrediction,
+      createdAt: new Date().toISOString(),
+      source: 'manual-upload-developer-mode',
+      image: {
+        fileName: imageFileName,
+        originalName: uploadedImage.originalname,
+        mimeType: uploadedImage.mimetype,
+        size: uploadedImage.size,
+      },
+    };
+
+    await writeFile(recordFilePath, JSON.stringify(record, null, 2), 'utf8');
+
+    return {
+      message:
+        'Skippy metrics with uploaded image executed successfully (developer mode).',
+      runId,
+      loss,
+      readiness: {
+        ready: true,
+        attempts: 1,
+        raw: 'Simulated (no OTDR/camera server in developer mode)',
+      },
       colorPrediction: {
         cableType,
         ...colorPrediction,
@@ -704,7 +813,7 @@ export class OtdrService implements OnModuleDestroy {
     const blob = new Blob([fileBytes], {
       type: image.mimetype || 'application/octet-stream',
     });
-    formData.append('file', blob, image.originalname || 'capture.jpg');
+    formData.append('image', blob, image.originalname || 'capture.jpg');
 
     const abortController = new AbortController();
     const timeout = setTimeout(() => {
