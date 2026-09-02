@@ -56,7 +56,7 @@ export class OtdrController {
    */
   @Post('commands/skippy/metrics-with-image/upload')
   @UseInterceptors(
-    FileInterceptor('image', { limits: { fileSize: 20 * 1024 * 1024 } }),
+    FileInterceptor('image', { limits: { fileSize: 200 * 1024 * 1024 } }), // 200 MB
   )
   runSkippyMetricsWithUploadedImage(
     @UploadedFile() image: Express.Multer.File,

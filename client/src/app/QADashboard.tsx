@@ -35,7 +35,16 @@ import {
 } from "@/hooks/use-cable"
 import { useLogout, useMe } from "@/hooks/use-auth"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import type { ColorPrediction } from "@/lib/types/otdr"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import type { ColorPrediction, SkippyMetricsWithImageResponse } from "@/lib/types/otdr"
+import { cn } from "@/lib/utils"
 import { OK_NOT_OK, type BatchCablePhysicalParametersPayload } from "@/lib/types/cable"
 import { useSearchParams } from "react-router-dom"
 
@@ -59,6 +68,13 @@ export default function QaDashboard() {
     attribute2_value?: string
   }>({})
   const [devTestImage, setDevTestImage] = useState<File | null>(null)
+  const [pendingFiberTest, setPendingFiberTest] = useState<{
+    result: SkippyMetricsWithImageResponse
+    currentAttribute1?: string
+    currentAttribute2?: string
+    detectedAttribute1?: string
+    detectedAttribute2?: string
+  } | null>(null)
 
   // queries
   const { data: otdrDevices, isPending: isOtdrDevicesPending } = useGetAllOtdrDevices()
@@ -152,24 +168,66 @@ export default function QaDashboard() {
             cableType,
           })
 
-    setSelectedFilters({
-      attribute1_value: getAttribute1Value(result.colorPrediction),
-      attribute2_value:
-        result.colorPrediction.cableType === "IBR" ? getAttribute2Value(result.colorPrediction) : undefined,
-    })
-    console.log(
-      getAttribute1Value(result.colorPrediction),
-      getAttribute2Value(result.colorPrediction),
-      getAttribute3Value(result.colorPrediction)
+    // attribute2 only forms a "locked group" (alongside attribute1) for cable types with
+    // three levels (Strand>Ribbon>Fiber, Type>Tube>Fiber) — for FLAT_RIBBON (Ribbon>Fiber)
+    // attribute2 *is* the per-shot fiber identity, so it's never locked/compared.
+    const detectedAttribute1 = getAttribute1Value(result.colorPrediction)
+    const detectedAttribute2 =
+      result.colorPrediction.cableType === "FLAT_RIBBON" ? undefined : getAttribute2Value(result.colorPrediction)
+
+    const attribute1Changed =
+      !!selectedFilters.attribute1_value &&
+      !!detectedAttribute1 &&
+      detectedAttribute1 !== selectedFilters.attribute1_value
+    const attribute2Changed =
+      !!selectedFilters.attribute2_value &&
+      !!detectedAttribute2 &&
+      detectedAttribute2 !== selectedFilters.attribute2_value
+
+    if (attribute1Changed || attribute2Changed) {
+      setPendingFiberTest({
+        result,
+        currentAttribute1: selectedFilters.attribute1_value,
+        currentAttribute2: selectedFilters.attribute2_value,
+        detectedAttribute1,
+        detectedAttribute2,
+      })
+      return
+    }
+
+    await finalizeFiberTest(
+      result,
+      selectedFilters.attribute1_value ?? detectedAttribute1,
+      selectedFilters.attribute2_value ?? detectedAttribute2
     )
+  }
+
+  // Persists a fiber test reading against the confirmed attribute1/attribute2 group —
+  // "confirmed" meaning either it matched what was already selected, or the user chose
+  // it from the mismatch popup — never the raw per-shot AI detection unchecked.
+  const finalizeFiberTest = async (
+    result: SkippyMetricsWithImageResponse,
+    attribute1_value?: string,
+    attribute2_value?: string
+  ) => {
+    setSelectedFilters({
+      attribute1_value,
+      attribute2_value: result.colorPrediction.cableType === "FLAT_RIBBON" ? undefined : attribute2_value,
+    })
+
+    const matchedRow = batchFiberTestingData?.rows.find((row) => {
+      if (result.colorPrediction.cableType === "FLAT_RIBBON") {
+        return row.attribute1_value === attribute1_value && row.attribute2_value === getAttribute2Value(result.colorPrediction)
+      }
+      return (
+        row.attribute1_value === attribute1_value &&
+        row.attribute2_value === attribute2_value &&
+        row.attribute3_value === getAttribute3Value(result.colorPrediction)
+      )
+    })
+
     await saveBatchFiberTestingData.mutateAsync({
-      fibre_id:
-        batchFiberTestingData?.rows.find(
-          (row) =>
-            row.attribute1_value === getAttribute1Value(result.colorPrediction) &&
-            row.attribute2_value === getAttribute2Value(result.colorPrediction) &&
-            row.attribute3_value === getAttribute3Value(result.colorPrediction)
-        )?.id || 0,
+      fibre_id: matchedRow?.id || 0,
       fiber_wavelengths: [
         ...(result.loss[1310] !== undefined
           ? [
@@ -198,6 +256,17 @@ export default function QaDashboard() {
       ],
       ai_response: JSON.stringify(result.colorPrediction),
     })
+  }
+
+  const resolvePendingFiberTest = async (useDetected: boolean) => {
+    if (!pendingFiberTest) return
+    const { result, currentAttribute1, currentAttribute2, detectedAttribute1, detectedAttribute2 } = pendingFiberTest
+    setPendingFiberTest(null)
+    await finalizeFiberTest(
+      result,
+      useDetected ? detectedAttribute1 : currentAttribute1,
+      useDetected ? detectedAttribute2 : currentAttribute2
+    )
   }
 
   const handleConnect = async () => {
@@ -236,6 +305,11 @@ export default function QaDashboard() {
     () => otdr && sfgStage && batch && cableProfile,
     [otdr, sfgStage, batch, cableProfile]
   )
+
+  const attribute1HeaderLabel =
+    batchFiberTestingData?.headers.find((h) => h.key === "attribute1_value")?.label || "Attribute 1"
+  const attribute2HeaderLabel =
+    batchFiberTestingData?.headers.find((h) => h.key === "attribute2_value")?.label || "Attribute 2"
 
   const uniqueAttribute1_values = useMemo(() => {
     if (!batchFiberTestingData) return []
@@ -285,17 +359,24 @@ export default function QaDashboard() {
 
   function getAttribute1Value(colorPrediction: ColorPrediction) {
     if (colorPrediction.cableType === "IBR") {
-      console.log(colorPrediction.strand?.color)
       return colorPrediction.strand?.color
     } else if (colorPrediction.cableType === "FLAT_RIBBON") {
       return `R${colorPrediction.ribbon?.markings}`
     } else if (colorPrediction.cableType === "MULTI_TUBE") {
-      return colorPrediction.tube_color?.color
+      // The AI only predicts the tube's color, not its Inner/Outer layer — derive the
+      // Type from the rows already generated for this profile (color -> layer is fixed
+      // per cable profile), so it stays undefined (no comparison) if that's ambiguous.
+      const tubeColor = colorPrediction.tube_color?.color
+      const matchingTypes = new Set(
+        (batchFiberTestingData?.rows ?? [])
+          .filter((row) => row.attribute2_value === tubeColor)
+          .map((row) => row.attribute1_value)
+      )
+      return matchingTypes.size === 1 ? Array.from(matchingTypes)[0] : undefined
     }
   }
 
   function getAttribute2Value(colorPrediction: ColorPrediction) {
-    console.log(colorPrediction)
     if (colorPrediction.cableType === "IBR") {
       return `R${colorPrediction.ribbon?.markings_score}`
     }
@@ -303,23 +384,21 @@ export default function QaDashboard() {
       return colorPrediction.fiber?.color
     }
     if (colorPrediction.cableType === "MULTI_TUBE") {
-      if (colorPrediction.fiber_markings?.pattern_id) {
-        if (colorPrediction.fiber_markings.pattern_id === 1) {
-          return `${colorPrediction.fiber_color?.color}-Ring`
-        } else if (colorPrediction.fiber_markings.pattern_id === 2) {
-          return `${colorPrediction.fiber_color?.color}-DoubleRing`
-        } else {
-          return `${colorPrediction.fiber_color?.color}`
-        }
-      } else {
-        return `${colorPrediction.fiber_color?.color}`
-      }
+      return colorPrediction.tube_color?.color
     }
   }
 
   function getAttribute3Value(colorPrediction: ColorPrediction) {
     if (colorPrediction.cableType === "IBR") {
       return colorPrediction.fiber?.color
+    }
+    if (colorPrediction.cableType === "MULTI_TUBE") {
+      if (colorPrediction.fiber_markings?.pattern_id === 1) {
+        return `${colorPrediction.fiber_color?.color}-Ring`
+      } else if (colorPrediction.fiber_markings?.pattern_id === 2) {
+        return `${colorPrediction.fiber_color?.color}-DoubleRing`
+      }
+      return colorPrediction.fiber_color?.color
     }
     return null
   }
@@ -1381,6 +1460,63 @@ export default function QaDashboard() {
           </div>
         </Card>
       </div>
+
+      <Dialog
+        open={!!pendingFiberTest}
+        onOpenChange={(open) => {
+          if (!open) setPendingFiberTest(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Fiber group mismatch detected</DialogTitle>
+            <DialogDescription>
+              The AI read this fiber as belonging to a different {attribute1HeaderLabel.toLowerCase()}
+              {pendingFiberTest?.detectedAttribute2 ? `/${attribute2HeaderLabel.toLowerCase()}` : ""} than the one
+              currently selected. Keep testing under the current group, or switch to the one the AI detected.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-3 gap-2 rounded-md border text-xs">
+            <div className="col-span-1 border-r p-2 font-medium text-muted-foreground"></div>
+            <div className="col-span-1 border-r p-2 font-medium text-muted-foreground">Current</div>
+            <div className="col-span-1 p-2 font-medium text-muted-foreground">Detected</div>
+
+            <div className="col-span-1 border-t border-r p-2 font-medium">{attribute1HeaderLabel}</div>
+            <div className="col-span-1 border-t border-r p-2">{pendingFiberTest?.currentAttribute1 ?? "—"}</div>
+            <div
+              className={cn(
+                "col-span-1 border-t p-2",
+                pendingFiberTest?.currentAttribute1 !== pendingFiberTest?.detectedAttribute1 &&
+                  "font-semibold text-destructive"
+              )}
+            >
+              {pendingFiberTest?.detectedAttribute1 ?? "—"}
+            </div>
+
+            {pendingFiberTest?.detectedAttribute2 && (
+              <>
+                <div className="col-span-1 border-t border-r p-2 font-medium">{attribute2HeaderLabel}</div>
+                <div className="col-span-1 border-t border-r p-2">{pendingFiberTest?.currentAttribute2 ?? "—"}</div>
+                <div
+                  className={cn(
+                    "col-span-1 border-t p-2",
+                    pendingFiberTest?.currentAttribute2 !== pendingFiberTest?.detectedAttribute2 &&
+                      "font-semibold text-destructive"
+                  )}
+                >
+                  {pendingFiberTest?.detectedAttribute2 ?? "—"}
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => resolvePendingFiberTest(false)}>
+              Keep current
+            </Button>
+            <Button onClick={() => resolvePendingFiberTest(true)}>Switch to detected</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
