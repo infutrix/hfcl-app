@@ -217,7 +217,10 @@ export default function QaDashboard() {
 
     const matchedRow = batchFiberTestingData?.rows.find((row) => {
       if (result.colorPrediction.cableType === "FLAT_RIBBON") {
-        return row.attribute1_value === attribute1_value && row.attribute2_value === getAttribute2Value(result.colorPrediction)
+        return (
+          row.attribute1_value === attribute1_value &&
+          row.attribute2_value === getAttribute2Value(result.colorPrediction)
+        )
       }
       return (
         row.attribute1_value === attribute1_value &&
@@ -846,7 +849,6 @@ export default function QaDashboard() {
                               {header.label}
                             </TableHead>
                           ))}
-                          <TableHead className="h-7 px-2 py-1 text-xs">Test Count</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
