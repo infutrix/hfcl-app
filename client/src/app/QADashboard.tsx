@@ -2,7 +2,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import ScrollContainer from "react-indiana-drag-scroll"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Select,
@@ -246,9 +245,12 @@ export default function QaDashboard() {
 
   const uniqueAttribute2_values = useMemo(() => {
     if (!batchFiberTestingData) return []
-    const uniqueValues = new Set(batchFiberTestingData.rows.map((row) => row.attribute2_value))
+    const rows = selectedFilters.attribute1_value
+      ? batchFiberTestingData.rows.filter((row) => row.attribute1_value === selectedFilters.attribute1_value)
+      : batchFiberTestingData.rows
+    const uniqueValues = new Set(rows.map((row) => row.attribute2_value))
     return Array.from(uniqueValues)
-  }, [batchFiberTestingData])
+  }, [batchFiberTestingData, selectedFilters.attribute1_value])
 
   const selectedFiltersFiberTestingData = useMemo(() => {
     if (!batchFiberTestingData) return null
@@ -347,6 +349,15 @@ export default function QaDashboard() {
       !selectedFilters.attribute2_value
     ) {
       setSelectedFilters((prev) => ({ ...prev, attribute2_value: uniqueAttribute2_values[0] }))
+    }
+    // when the attribute1 (Type) filter changes, the attribute2 (Tube) options are re-scoped
+    // to that type — drop a previously selected tube that is no longer in the list
+    if (
+      selectedFilters.attribute2_value &&
+      uniqueAttribute2_values &&
+      !uniqueAttribute2_values.includes(selectedFilters.attribute2_value)
+    ) {
+      setSelectedFilters((prev) => ({ ...prev, attribute2_value: undefined }))
     }
   }, [uniqueAttribute1_values, uniqueAttribute2_values])
 
@@ -703,11 +714,12 @@ export default function QaDashboard() {
               !isBatchFiberTestingDataLoading && (
                 <>
                   <div className="grid grid-cols-1 gap-2">
-                    <ScrollContainer hideScrollbars={false} className="overflow-x-auto pb-1">
+                    <div className="pb-1">
                       <ToggleGroup
                         type="single"
                         value={selectedFilters.attribute1_value}
                         defaultValue={uniqueAttribute1_values?.[0]}
+                        className="flex-wrap"
                         onValueChange={(value) => {
                           if (!value) {
                             return
@@ -721,11 +733,13 @@ export default function QaDashboard() {
                           </ToggleGroupItem>
                         ))}
                       </ToggleGroup>
-                    </ScrollContainer>
+                    </div>
+                    <div className="h-0.5 w-full bg-muted-foreground"></div>
                     {selectedCableProfile?.colorProfile.cable_type != "FLAT_RIBBON" && (
-                      <ScrollContainer hideScrollbars={false} className="overflow-x-auto pb-1">
+                      <div className="pb-1">
                         <ToggleGroup
                           type="single"
+                          className="flex-wrap"
                           value={selectedFilters.attribute2_value}
                           defaultValue={uniqueAttribute2_values?.[0]}
                           onValueChange={(value) => {
@@ -741,7 +755,7 @@ export default function QaDashboard() {
                             </ToggleGroupItem>
                           ))}
                         </ToggleGroup>
-                      </ScrollContainer>
+                      </div>
                     )}
                   </div>
                   <div className="max-h-148 overflow-x-auto border border-muted-foreground ring-0">
