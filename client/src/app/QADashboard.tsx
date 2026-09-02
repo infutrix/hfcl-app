@@ -68,6 +68,7 @@ export default function QaDashboard() {
     attribute2_value?: string
   }>({})
   const [devTestImage, setDevTestImage] = useState<File | null>(null)
+  const [lastTestedFiberId, setLastTestedFiberId] = useState<number | null>(null)
   const [pendingFiberTest, setPendingFiberTest] = useState<{
     result: SkippyMetricsWithImageResponse
     currentAttribute1?: string
@@ -228,6 +229,8 @@ export default function QaDashboard() {
         row.attribute3_value === getAttribute3Value(result.colorPrediction)
       )
     })
+
+    setLastTestedFiberId(matchedRow?.id ?? null)
 
     await saveBatchFiberTestingData.mutateAsync({
       fibre_id: matchedRow?.id || 0,
@@ -417,6 +420,7 @@ export default function QaDashboard() {
       attribute1_value: undefined,
       attribute2_value: undefined,
     })
+    setLastTestedFiberId(null)
   }, [selectedCableProfile])
 
   // initialize selected filters to first available value (index 0) when lists load
@@ -853,8 +857,25 @@ export default function QaDashboard() {
                       </TableHeader>
                       <TableBody>
                         {selectedFiltersFiberTestingData?.rows.map((row, i) => (
-                          <TableRow key={i} className={i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950/50" : ""}>
-                            <TableCell className="h-6 px-2 py-1 text-xs">{row.fiber_number}</TableCell>
+                          <TableRow
+                            key={i}
+                            className={cn(
+                              i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950/50" : "",
+                              row.id === lastTestedFiberId &&
+                                "bg-emerald-100 outline-2 -outline-offset-1 outline-emerald-500 dark:bg-emerald-950/60"
+                            )}
+                          >
+                            <TableCell className="h-6 px-2 py-1 text-xs font-medium">
+                              {row.fiber_number}
+                              {row.id === lastTestedFiberId && (
+                                <Badge
+                                  variant="default"
+                                  className="ml-1.5 h-4 bg-emerald-600 px-1 text-[9px] leading-none hover:bg-emerald-600"
+                                >
+                                  Latest
+                                </Badge>
+                              )}
+                            </TableCell>
 
                             <TableCell className="h-6 px-2 py-1 text-xs">{row.attribute1_value}</TableCell>
 
