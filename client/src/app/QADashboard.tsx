@@ -722,7 +722,7 @@ export default function QaDashboard() {
                         ))}
                       </ToggleGroup>
                     </ScrollContainer>
-                    {selectedCableProfile?.colorProfile.cable_type === "IBR" && (
+                    {selectedCableProfile?.colorProfile.cable_type != "FLAT_RIBBON" && (
                       <ScrollContainer hideScrollbars={false} className="overflow-x-auto pb-1">
                         <ToggleGroup
                           type="single"
