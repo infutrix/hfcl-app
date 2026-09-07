@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { ArrowLeft, EthernetPort, Loader2, LogOut, MonitorPlay, Printer, Save } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   useConnectOtdr,
   useGetAllOtdrDevices,
@@ -69,6 +69,7 @@ export default function QaDashboard() {
   }>({})
   const [devTestImage, setDevTestImage] = useState<File | null>(null)
   const [lastTestedFiberId, setLastTestedFiberId] = useState<number | null>(null)
+  const lastTestedRowRef = useRef<HTMLTableRowElement | null>(null)
   const [pendingFiberTest, setPendingFiberTest] = useState<{
     result: SkippyMetricsWithImageResponse
     currentAttribute1?: string
@@ -422,6 +423,12 @@ export default function QaDashboard() {
     })
     setLastTestedFiberId(null)
   }, [selectedCableProfile])
+
+  // scroll the latest tested fiber row into view if it isn't already visible
+  useEffect(() => {
+    if (lastTestedFiberId == null) return
+    lastTestedRowRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" })
+  }, [lastTestedFiberId])
 
   // initialize selected filters to first available value (index 0) when lists load
   useEffect(() => {
@@ -859,6 +866,7 @@ export default function QaDashboard() {
                         {selectedFiltersFiberTestingData?.rows.map((row, i) => (
                           <TableRow
                             key={i}
+                            ref={row.id === lastTestedFiberId ? lastTestedRowRef : undefined}
                             className={cn(
                               i % 2 === 0 ? "bg-blue-50 dark:bg-blue-950/50" : "",
                               row.id === lastTestedFiberId &&
