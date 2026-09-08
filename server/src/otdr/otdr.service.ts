@@ -18,6 +18,7 @@ import {
 } from './dto/run-skippy-metrics-with-image.dto';
 import { RunSkippyLengthAndIorDto } from './dto/run-skippy-length-and-ior.dto';
 import { RunSkippyMetricsWithUploadedImageDto } from './dto/run-skippy-metrics-with-uploaded-image.dto';
+import { AiServerDiscoveryService } from '../discovery/ai-server-discovery.service';
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
@@ -53,10 +54,9 @@ export class OtdrService implements OnModuleDestroy {
   private readonly bCursorCommand = 'sense:bcursor?';
   private readonly aCursorCommand = 'sense:acursor?';
   private readonly runStorageDir = join(process.cwd(), 'public', 'otdr-runs');
-  private readonly basePredictUrl = 'http://192.168.100.160:8000';
-  private readonly iBrPredictUrl = `${this.basePredictUrl}/api/v1/predict/ibr`;
-  private readonly flatRibbonPredictUrl = `${this.basePredictUrl}/api/v1/predict/flat_ribbon`;
-  private readonly multiTubPredictUrl = `${this.basePredictUrl}/api/v1/predict/multi_tube`;
+  private readonly iBrPredictPath = '/api/v1/predict/ibr';
+  private readonly flatRibbonPredictPath = '/api/v1/predict/flat_ribbon';
+  private readonly multiTubPredictPath = '/api/v1/predict/multi_tube';
   private readonly iBrPredictTimeoutMs = 200000;
   private readonly captureImageUrl =
     process.env.CAPTURE_IMAGE_URL ?? 'http://localhost:5001/capture';
@@ -74,6 +74,8 @@ export class OtdrService implements OnModuleDestroy {
   };
 
   private commandChain: Promise<void> = Promise.resolve();
+
+  constructor(private readonly aiServerDiscovery: AiServerDiscoveryService) {}
 
   async connection(createConnectionDto: CreateConnectionDto) {
     // Allow simulating connection state changes in developer mode without affecting actual OTDR connection
@@ -808,6 +810,25 @@ export class OtdrService implements OnModuleDestroy {
     image: UploadedImageFile,
     cableType: CableType,
   ): Promise<object> {
+    if (!this.aiServerDiscovery.isAiServerAvailable()) {
+      throw new ServiceUnavailableException(
+        'AI Server has not been discovered on the local network yet.',
+      );
+    }
+    const aiServerBaseUrl = this.aiServerDiscovery.getAiServerUrl();
+    if (!aiServerBaseUrl) {
+      throw new ServiceUnavailableException(
+        'AI Server has not been discovered on the local network yet.',
+      );
+    }
+
+    const predictPath =
+      cableType === CableTypeEnum.IBR
+        ? this.iBrPredictPath
+        : cableType === CableTypeEnum.FLAT_RIBBON
+          ? this.flatRibbonPredictPath
+          : this.multiTubPredictPath;
+
     const formData = new FormData();
     const fileBytes = Uint8Array.from(image.buffer);
     const blob = new Blob([fileBytes], {
@@ -823,21 +844,14 @@ export class OtdrService implements OnModuleDestroy {
     let response: Response;
 
     try {
-      response = await fetch(
-        cableType === CableTypeEnum.IBR
-          ? this.iBrPredictUrl
-          : cableType === CableTypeEnum.FLAT_RIBBON
-            ? this.flatRibbonPredictUrl
-            : this.multiTubPredictUrl,
-        {
-          method: 'POST',
-          headers: {
-            accept: 'application/json',
-          },
-          body: formData,
-          signal: abortController.signal,
+      response = await fetch(`${aiServerBaseUrl}${predictPath}`, {
+        method: 'POST',
+        headers: {
+          accept: 'application/json',
         },
-      );
+        body: formData,
+        signal: abortController.signal,
+      });
     } catch (error) {
       const reason =
         error instanceof Error ? error.message : 'Unknown network error';
