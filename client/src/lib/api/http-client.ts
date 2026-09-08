@@ -1,7 +1,8 @@
 import axios from "axios"
+import { LOCAL_SERVER_BASE_URL } from "./config"
 
 const api = axios.create({
-  baseURL: "http://localhost:3001",
+  baseURL: LOCAL_SERVER_BASE_URL,
   withCredentials: true,
 })
 
@@ -9,8 +10,7 @@ const api = axios.create({
  * Request interceptor
  */
 api.interceptors.request.use((config) => {
-  const isFormDataPayload =
-    typeof FormData !== "undefined" && config.data instanceof FormData
+  const isFormDataPayload = typeof FormData !== "undefined" && config.data instanceof FormData
 
   if (isFormDataPayload) {
     return config

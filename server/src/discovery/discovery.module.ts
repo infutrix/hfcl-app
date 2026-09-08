@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { MainServerDiscoveryService } from './main-server-discovery.service';
 import { MainServerApiService } from './main-server-api.service';
+import { DiscoveryController } from './discovery.controller';
 
 /**
  * Global so the UDP listener is bound exactly once per process, and any
@@ -9,6 +10,7 @@ import { MainServerApiService } from './main-server-api.service';
  */
 @Global()
 @Module({
+  controllers: [DiscoveryController],
   providers: [MainServerDiscoveryService, MainServerApiService],
   exports: [MainServerDiscoveryService, MainServerApiService],
 })

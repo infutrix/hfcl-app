@@ -1,7 +1,7 @@
 import axios from "axios"
+import { getMainServerBaseUrl } from "./main-server-url"
 
 const apiCms = axios.create({
-  baseURL: "https://hfclapi.infutrix.com",
   withCredentials: true,
 })
 
@@ -9,6 +9,10 @@ const apiCms = axios.create({
  * Request interceptor
  */
 apiCms.interceptors.request.use((config) => {
+  // Resolved fresh on every request: the main server's LAN IP can change (DHCP),
+  // so this must never be pinned to the value captured when the client loaded.
+  config.baseURL = getMainServerBaseUrl()
+
   const isFormDataPayload = typeof FormData !== "undefined" && config.data instanceof FormData
 
   if (isFormDataPayload) {
