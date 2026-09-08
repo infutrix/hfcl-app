@@ -5,6 +5,7 @@ import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableShutdownHooks();
   app.enableCors({
     origin: ['http://localhost:3000'],
     credentials: true,
