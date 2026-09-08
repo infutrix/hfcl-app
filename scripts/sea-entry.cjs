@@ -4,7 +4,21 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { parse } = require('dotenv');
 const { getAsset, getAssetKeys } = require('node:sea');
+
+function loadEmbeddedEnvironment() {
+  const assetName = 'config/server.env';
+  if (!getAssetKeys().includes(assetName)) return;
+
+  // Load before requiring Nest: discovery constants read process.env while
+  // their modules are evaluated. Explicit process environment values retain
+  // precedence, allowing administrators to override a packaged setting.
+  const values = parse(Buffer.from(getAsset(assetName)));
+  for (const [key, value] of Object.entries(values)) {
+    if (process.env[key] === undefined) process.env[key] = value;
+  }
+}
 
 function extractFrontend() {
   const frontendKeys = getAssetKeys().filter((key) => key.startsWith('frontend/'));
@@ -38,6 +52,7 @@ function extractFrontend() {
 }
 
 async function start() {
+  loadEmbeddedEnvironment();
   const frontendDir = extractFrontend();
   process.env.HFCL_FRONTEND_DIR = frontendDir;
   process.env.HFCL_RUNTIME_DATA_DIR = path.dirname(frontendDir);

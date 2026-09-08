@@ -77,6 +77,15 @@ async function main() {
   }
   if (!assets['frontend/index.html']) throw new Error('Vite did not produce index.html.');
 
+  const environmentFile = path.join(server, '.env');
+  if (fs.existsSync(environmentFile)) {
+    // SEA stores this file inside the executable. It is not written to disk at
+    // runtime; sea-entry parses it before Nest modules are loaded.
+    assets['config/server.env'] = environmentFile;
+  } else {
+    console.warn('server/.env was not found; discovery secrets will not be embedded.');
+  }
+
   const config = {
     main: path.join(work, 'application.cjs'),
     output,
