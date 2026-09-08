@@ -1,4 +1,8 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { MainServerDiscoveryService } from './main-server-discovery.service';
 
 export interface MainServerRequestOptions extends RequestInit {
@@ -27,13 +31,20 @@ export class MainServerApiService {
     return `${baseUrl}${normalizedPath}`;
   }
 
-  async request<T = unknown>({ path, ...init }: MainServerRequestOptions): Promise<T> {
+  async request<T = unknown>({
+    path,
+    ...init
+  }: MainServerRequestOptions): Promise<T> {
     const url = this.resolveUrl(path);
     const response = await fetch(url, init);
 
     if (!response.ok) {
-      this.logger.warn(`Request to ${url} failed with status ${response.status}`);
-      throw new Error(`Main server request to ${url} failed with status ${response.status}`);
+      this.logger.warn(
+        `Request to ${url} failed with status ${response.status}`,
+      );
+      throw new Error(
+        `Main server request to ${url} failed with status ${response.status}`,
+      );
     }
 
     const contentType = response.headers.get('content-type') ?? '';
@@ -47,7 +58,11 @@ export class MainServerApiService {
     return this.request<T>({ ...init, path, method: 'GET' });
   }
 
-  post<T = unknown>(path: string, body?: unknown, init?: RequestInit): Promise<T> {
+  post<T = unknown>(
+    path: string,
+    body?: unknown,
+    init?: RequestInit,
+  ): Promise<T> {
     return this.request<T>({
       ...init,
       path,

@@ -1,4 +1,8 @@
-import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { AiServerDiscoveryService } from './ai-server-discovery.service';
 
 export interface AiServerRequestOptions extends RequestInit {
@@ -18,17 +22,24 @@ export class AiServerApiService {
 
   private resolveUrl(path: string): string {
     if (!this.discovery.isAiServerAvailable()) {
-      throw new ServiceUnavailableException('AI Server is currently unavailable');
+      throw new ServiceUnavailableException(
+        'AI Server is currently unavailable',
+      );
     }
     const baseUrl = this.discovery.getAiServerUrl();
     if (!baseUrl) {
-      throw new ServiceUnavailableException('AI Server is currently unavailable');
+      throw new ServiceUnavailableException(
+        'AI Server is currently unavailable',
+      );
     }
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     return `${baseUrl}${normalizedPath}`;
   }
 
-  async request<T = unknown>({ path, ...init }: AiServerRequestOptions): Promise<T> {
+  async request<T = unknown>({
+    path,
+    ...init
+  }: AiServerRequestOptions): Promise<T> {
     const url = this.resolveUrl(path);
 
     let response: Response;
@@ -37,14 +48,21 @@ export class AiServerApiService {
     } catch (error) {
       // Covers connection refused, DNS failure, and any network-level error
       // that can happen right after the AI server restarts or changes IP.
-      const reason = error instanceof Error ? error.message : 'Unknown network error';
+      const reason =
+        error instanceof Error ? error.message : 'Unknown network error';
       this.logger.error(`AI server request to ${url} failed: ${reason}`);
-      throw new ServiceUnavailableException(`AI Server is unreachable: ${reason}`);
+      throw new ServiceUnavailableException(
+        `AI Server is unreachable: ${reason}`,
+      );
     }
 
     if (!response.ok) {
-      this.logger.warn(`AI server request to ${url} failed with status ${response.status}`);
-      throw new Error(`AI server request to ${url} failed with status ${response.status}`);
+      this.logger.warn(
+        `AI server request to ${url} failed with status ${response.status}`,
+      );
+      throw new Error(
+        `AI server request to ${url} failed with status ${response.status}`,
+      );
     }
 
     const contentType = response.headers.get('content-type') ?? '';
@@ -58,7 +76,11 @@ export class AiServerApiService {
     return this.request<T>({ ...init, path, method: 'GET' });
   }
 
-  post<T = unknown>(path: string, body?: unknown, init?: RequestInit): Promise<T> {
+  post<T = unknown>(
+    path: string,
+    body?: unknown,
+    init?: RequestInit,
+  ): Promise<T> {
     return this.request<T>({
       ...init,
       path,
