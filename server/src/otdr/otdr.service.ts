@@ -53,7 +53,10 @@ export class OtdrService implements OnModuleDestroy {
   private readonly initiateStateCommand = 'INITiate?';
   private readonly bCursorCommand = 'sense:bcursor?';
   private readonly aCursorCommand = 'sense:acursor?';
-  private readonly runStorageDir = join(process.cwd(), 'public', 'otdr-runs');
+  private readonly runStorageDir = join(
+    process.env.HFCL_RUNTIME_DATA_DIR ?? process.cwd(),
+    process.env.HFCL_RUNTIME_DATA_DIR ? 'otdr-runs' : 'public/otdr-runs',
+  );
   private readonly iBrPredictPath = '/api/v1/predict/ibr';
   private readonly flatRibbonPredictPath = '/api/v1/predict/flat_ribbon';
   private readonly multiTubPredictPath = '/api/v1/predict/multi_tube';

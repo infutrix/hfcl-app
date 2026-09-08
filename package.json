@@ -5,6 +5,7 @@
     "build": "pnpm --filter hfcl-client build && pnpm --filter hfcl-apis build",
     "build:client": "pnpm --filter hfcl-client build",
     "build:server": "pnpm --filter hfcl-apis build",
+    "build:exe": "node scripts/build-exe.cjs",
     "dev:client": "pnpm --filter hfcl-client dev",
     "dev:server": "pnpm --filter hfcl-apis start:dev",
     "start:server": "pnpm --filter hfcl-apis start",
@@ -13,6 +14,7 @@
     "start": "concurrently \"pnpm --filter hfcl-apis start\" \"pnpm --filter hfcl-client preview\""
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "esbuild": "^0.27.7"
   }
 }

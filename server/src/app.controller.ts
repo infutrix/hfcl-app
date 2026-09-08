@@ -14,6 +14,11 @@ export class AppController {
 
   @Get('ui')
   getOtdrUi(@Res() res: Response): void {
-    res.sendFile(join(process.cwd(), 'public', 'index.html'));
+    res.sendFile(
+      join(
+        process.env.HFCL_FRONTEND_DIR ?? process.cwd(),
+        process.env.HFCL_FRONTEND_DIR ? 'index.html' : 'public/index.html',
+      ),
+    );
   }
 }
