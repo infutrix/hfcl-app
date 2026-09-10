@@ -4,6 +4,7 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { AiServerDiscoveryService } from './ai-server-discovery.service';
+import { AI_SERVER_FALLBACK_URL } from './ai-discovery.constants';
 
 export interface AiServerRequestOptions extends RequestInit {
   path: string;
@@ -22,8 +23,8 @@ export class AiServerApiService {
 
   private resolveUrl(path: string): string {
     if (!this.discovery.isAiServerAvailable()) {
-      throw new ServiceUnavailableException(
-        'AI Server is currently unavailable',
+      this.logger.warn(
+        `No active AI server was found via UDP discovery; using fallback ${AI_SERVER_FALLBACK_URL}`,
       );
     }
     const baseUrl = this.discovery.getAiServerUrl();

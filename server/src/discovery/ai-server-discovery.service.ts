@@ -12,6 +12,7 @@ import {
   AI_DISCOVERY_MESSAGE_TYPE,
   AI_DISCOVERY_PORT,
   AI_DISCOVERY_PROTOCOL_VERSION,
+  AI_SERVER_FALLBACK_URL,
   AI_SERVER_OFFLINE_TIMEOUT_MS,
 } from './ai-discovery.constants';
 import { verifyDiscoverySignature } from './discovery.crypto';
@@ -70,10 +71,13 @@ export class AiServerDiscoveryService implements OnModuleInit, OnModuleDestroy {
     this.stop();
   }
 
-  /** Returns the last discovered AI server base URL, or null if unknown/offline. */
-  getAiServerUrl(): string | null {
+  /**
+   * Returns the fresh UDP-discovered URL, or the configured HTTP fallback when
+   * discovery has not found a currently available AI server.
+   */
+  getAiServerUrl(): string {
     if (!this.isAiServerAvailable()) {
-      return null;
+      return AI_SERVER_FALLBACK_URL;
     }
     return `http://${this.discovered!.host}:${this.discovered!.port}`;
   }
@@ -91,9 +95,7 @@ export class AiServerDiscoveryService implements OnModuleInit, OnModuleDestroy {
   getAiServerStatus(): AiServerStatus {
     return {
       available: this.isAiServerAvailable(),
-      url: this.discovered
-        ? `http://${this.discovered.host}:${this.discovered.port}`
-        : null,
+      url: this.getAiServerUrl(),
       lastSeen: this.discovered?.lastSeenAt ?? null,
     };
   }
@@ -116,7 +118,7 @@ export class AiServerDiscoveryService implements OnModuleInit, OnModuleDestroy {
 
     socket.bind(AI_DISCOVERY_PORT, () => {
       this.logger.log(
-        `Listening for AI server broadcasts on UDP ${AI_DISCOVERY_PORT}`,
+        `Listening for AI server broadcasts on UDP ${AI_DISCOVERY_PORT}; fallback URL: ${AI_SERVER_FALLBACK_URL}`,
       );
     });
 

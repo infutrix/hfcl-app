@@ -12,6 +12,10 @@ export const AI_DISCOVERY_DEFAULTS = {
 
 export const AI_DISCOVERY_MESSAGE_TYPE = 'HFCL_AI_SERVER' as const;
 
+/** Used while no fresh, signed UDP broadcast from the AI server is available. */
+export const AI_SERVER_FALLBACK_URL =
+  process.env.HFCL_AI_SERVER_FALLBACK_URL ?? 'http://172.20.170.95:8000';
+
 export const AI_DISCOVERY_ENABLED =
   (process.env.HFCL_AI_DISCOVERY_ENABLED ??
     String(AI_DISCOVERY_DEFAULTS.ENABLED)) !== 'false';

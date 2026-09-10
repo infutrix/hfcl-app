@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   OnModuleDestroy,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -19,6 +20,7 @@ import {
 import { RunSkippyLengthAndIorDto } from './dto/run-skippy-length-and-ior.dto';
 import { RunSkippyMetricsWithUploadedImageDto } from './dto/run-skippy-metrics-with-uploaded-image.dto';
 import { AiServerDiscoveryService } from '../discovery/ai-server-discovery.service';
+import { AI_SERVER_FALLBACK_URL } from '../discovery/ai-discovery.constants';
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected';
 
@@ -38,6 +40,7 @@ interface UploadedImageFile {
 
 @Injectable()
 export class OtdrService implements OnModuleDestroy {
+  private readonly logger = new Logger(OtdrService.name);
   private readonly lossAt1310Command =
     'source:wavelength 1310; *wai; initiate; *wai; trace:mdloss?';
   private readonly lossAt1550Command =
@@ -813,15 +816,10 @@ export class OtdrService implements OnModuleDestroy {
     image: UploadedImageFile,
     cableType: CableType,
   ): Promise<object> {
-    if (!this.aiServerDiscovery.isAiServerAvailable()) {
-      throw new ServiceUnavailableException(
-        'AI Server has not been discovered on the local network yet.',
-      );
-    }
     const aiServerBaseUrl = this.aiServerDiscovery.getAiServerUrl();
-    if (!aiServerBaseUrl) {
-      throw new ServiceUnavailableException(
-        'AI Server has not been discovered on the local network yet.',
+    if (!this.aiServerDiscovery.isAiServerAvailable()) {
+      this.logger.warn(
+        `No active AI server was found via UDP discovery; requesting color prediction from fallback ${AI_SERVER_FALLBACK_URL}`,
       );
     }
 
