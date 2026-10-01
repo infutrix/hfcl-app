@@ -6,14 +6,24 @@ import { ExpressAdapter } from '@nestjs/platform-express';
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { isHfclAgent, isPortFree, showErrorDialog } from './port-guard';
 
 const packagedFrontendDir = process.env.HFCL_FRONTEND_DIR;
+const LOOPBACK_HOST = '127.0.0.1';
 
 export async function bootstrap() {
   const rawServer = express();
   const isPackaged = Boolean(
     packagedFrontendDir && existsSync(packagedFrontendDir),
   );
+  const port = Number(process.env.PORT ?? 3001);
+
+  // Check before Nest starts, so a clash does not first open the OTDR and
+  // discovery services only to tear them down again.
+  if (isPackaged && !(await isPortFree(port, LOOPBACK_HOST))) {
+    await handleBusyPort(port);
+    return;
+  }
 
   // Register static middleware before Nest routes so `/` is the Vite UI.
   // Nest's explicit API controllers still receive every non-static request.
@@ -48,18 +58,55 @@ export async function bootstrap() {
       transform: true,
     }),
   );
-  const port = Number(process.env.PORT ?? 3001);
   if (isPackaged) {
-    await app.listen(port, '127.0.0.1');
+    try {
+      await app.listen(port, LOOPBACK_HOST);
+    } catch (error) {
+      // Another process took the port between the check above and now.
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code !== 'EADDRINUSE' && code !== 'EACCES') throw error;
+      await app.close();
+      await handleBusyPort(port);
+      return;
+    }
   } else {
     await app.listen(port);
   }
 
   if (isPackaged) {
-    const url = `http://127.0.0.1:${port}`;
+    const url = `http://${LOOPBACK_HOST}:${port}`;
     await waitForHttpReady(url);
     openBrowser(url);
   }
+}
+
+/**
+ * A second launch while the app is already running is normal (the operator
+ * double-clicked the shortcut again), so just bring the existing UI back up.
+ * Anything else holding the port is a real problem the operator must see.
+ */
+async function handleBusyPort(port: number): Promise<void> {
+  const url = `http://${LOOPBACK_HOST}:${port}`;
+
+  if (await isHfclAgent(url)) {
+    console.log(`HFCL is already running at ${url}; opening it.`);
+    openBrowser(url);
+    return;
+  }
+
+  const message = [
+    'HFCL Testing App could not start.',
+    '',
+    `Port ${port} on this PC is in use or reserved by another program, so the app has nowhere to run.`,
+    '',
+    'To fix it:',
+    '- Close the other program, or restart this PC, then start HFCL again.',
+    `- If it keeps happening, ask IT to find what uses port ${port} (netstat -ano | findstr :${port}).`,
+  ].join('\n');
+
+  console.error(message);
+  showErrorDialog('HFCL could not start', message);
+  process.exitCode = 1;
 }
 
 async function waitForHttpReady(url: string): Promise<void> {
