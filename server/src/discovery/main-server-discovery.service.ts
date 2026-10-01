@@ -10,6 +10,7 @@ import {
   DISCOVERY_MESSAGE_TYPE,
   DISCOVERY_PROTOCOL_VERSION,
   DISCOVERY_UDP_PORT,
+  getMainServerFallbackUrl,
   MAIN_SERVER_OFFLINE_TIMEOUT_MS,
   MAX_TIMESTAMP_SKEW_MS,
 } from './discovery.constants';
@@ -49,7 +50,7 @@ export class MainServerDiscoveryService
   onModuleInit(): void {
     if (!this.secret) {
       this.logger.warn(
-        'HFCL_DISCOVERY_SECRET is not set — main server discovery is disabled.',
+        `HFCL_DISCOVERY_SECRET is not set — main server discovery is disabled; fallback URL: ${getMainServerFallbackUrl() ?? '(none)'}`,
       );
       return;
     }
@@ -60,12 +61,21 @@ export class MainServerDiscoveryService
     this.stop();
   }
 
-  /** Returns the last discovered main server base URL, or null if unknown/offline. */
+  /**
+   * Returns the fresh UDP-discovered URL, or the manually configured
+   * HFCL_MAIN_SERVER_FALLBACK_URL when discovery has not found a currently
+   * available main server. Null only if neither is available.
+   */
   getMainServerUrl(): string | null {
     if (!this.isMainServerAvailable()) {
-      return null;
+      return getMainServerFallbackUrl();
     }
     return `http://${this.discovered!.host}:${this.discovered!.port}`;
+  }
+
+  /** True when the URL comes from the manual fallback rather than discovery. */
+  isUsingFallback(): boolean {
+    return !this.isMainServerAvailable() && getMainServerFallbackUrl() !== null;
   }
 
   isMainServerAvailable(): boolean {
@@ -99,7 +109,7 @@ export class MainServerDiscoveryService
 
     socket.bind(DISCOVERY_UDP_PORT, () => {
       this.logger.log(
-        `Listening for main server broadcasts on UDP ${DISCOVERY_UDP_PORT}`,
+        `Listening for main server broadcasts on UDP ${DISCOVERY_UDP_PORT}; fallback URL: ${getMainServerFallbackUrl() ?? '(none)'}`,
       );
     });
 

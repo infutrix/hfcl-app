@@ -18,12 +18,17 @@ export async function bootstrap() {
   // Register static middleware before Nest routes so `/` is the Vite UI.
   // Nest's explicit API controllers still receive every non-static request.
   if (isPackaged) {
-    rawServer.use(express.static(packagedFrontendDir!, { index: 'index.html' }));
+    rawServer.use(
+      express.static(packagedFrontendDir!, { index: 'index.html' }),
+    );
     // Keep known Nest route prefixes out of the SPA fallback. Register this
     // before Nest so Express reaches it instead of Nest's terminal 404 layer.
-    rawServer.get(/^(?!\/(?:otdr|discovery|ui)(?:\/|$)).*/, (_request, response) => {
-      response.sendFile(join(packagedFrontendDir!, 'index.html'));
-    });
+    rawServer.get(
+      /^(?!\/(?:otdr|discovery|ui)(?:\/|$)).*/,
+      (_request, response) => {
+        response.sendFile(join(packagedFrontendDir!, 'index.html'));
+      },
+    );
   }
 
   const app = isPackaged
@@ -81,11 +86,15 @@ async function waitForHttpReady(url: string): Promise<void> {
 
 function openBrowser(url: string): void {
   if (process.platform === 'win32') {
-    const browser = spawn('rundll32.exe', ['url.dll,FileProtocolHandler', url], {
-      detached: true,
-      stdio: 'ignore',
-      windowsHide: true,
-    });
+    const browser = spawn(
+      'rundll32.exe',
+      ['url.dll,FileProtocolHandler', url],
+      {
+        detached: true,
+        stdio: 'ignore',
+        windowsHide: true,
+      },
+    );
     browser.unref();
   }
 }

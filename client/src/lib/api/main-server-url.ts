@@ -9,6 +9,8 @@ let currentBaseUrl: string | null = null
 interface DiscoveryStatus {
   url: string | null
   available: boolean
+  /** True when `url` is the server's manual HFCL_MAIN_SERVER_FALLBACK_URL rather than a discovered one. */
+  fallback?: boolean
   lastSeenAt: number | null
 }
 
@@ -17,20 +19,23 @@ async function refreshMainServerUrl() {
     const { data } = await axios.get<DiscoveryStatus>(`${LOCAL_SERVER_BASE_URL}/discovery/main-server`, {
       timeout: 2000,
     })
-    currentBaseUrl = data.available && data.url ? data.url : null
+    // The local server only returns a url when discovered or a fallback is configured.
+    currentBaseUrl = data.url || null
   } catch {
     currentBaseUrl = null
   }
 }
 
 /**
- * Throws if the main server hasn't been discovered on the LAN yet, or hasn't
- * been seen recently enough to be considered online. Never falls back to a
- * hardcoded URL — callers must handle this as a genuine "unavailable" state.
+ * Returns the discovered main server URL, or the local server's manually
+ * configured HFCL_MAIN_SERVER_FALLBACK_URL. Throws if neither is available —
+ * callers must handle this as a genuine "unavailable" state.
  */
 export function getMainServerBaseUrl(): string {
   if (!currentBaseUrl) {
-    throw new Error("Main server has not been discovered on the local network yet.")
+    throw new Error(
+      "Main server has not been discovered on the local network yet and no fallback URL (HFCL_MAIN_SERVER_FALLBACK_URL) is configured."
+    )
   }
   return currentBaseUrl
 }

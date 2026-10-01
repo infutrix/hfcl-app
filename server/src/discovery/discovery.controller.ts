@@ -9,13 +9,14 @@ export class DiscoveryController {
     private readonly aiServerDiscovery: AiServerDiscoveryService,
   ) {}
 
-  // Existing contract — the client's main-server-url.ts already depends on
-  // this exact response shape, so it is left unchanged.
+  // The client's main-server-url.ts depends on this response shape. `url` is
+  // the discovered URL or, when `fallback` is true, HFCL_MAIN_SERVER_FALLBACK_URL.
   @Get('main-server')
   getMainServer() {
     return {
       url: this.mainServerDiscovery.getMainServerUrl(),
       available: this.mainServerDiscovery.isMainServerAvailable(),
+      fallback: this.mainServerDiscovery.isUsingFallback(),
       lastSeenAt: this.mainServerDiscovery.getLastSeenAt(),
     };
   }
@@ -31,6 +32,7 @@ export class DiscoveryController {
       mainServer: {
         available: this.mainServerDiscovery.isMainServerAvailable(),
         url: this.mainServerDiscovery.getMainServerUrl(),
+        fallback: this.mainServerDiscovery.isUsingFallback(),
         lastSeenAt: this.mainServerDiscovery.getLastSeenAt(),
       },
       aiServer: this.aiServerDiscovery.getAiServerStatus(),

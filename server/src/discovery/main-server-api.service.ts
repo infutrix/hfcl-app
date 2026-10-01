@@ -24,7 +24,12 @@ export class MainServerApiService {
     const baseUrl = this.discovery.getMainServerUrl();
     if (!baseUrl) {
       throw new ServiceUnavailableException(
-        'Main server has not been discovered on the local network yet.',
+        'Main server has not been discovered on the local network yet and HFCL_MAIN_SERVER_FALLBACK_URL is not set.',
+      );
+    }
+    if (this.discovery.isUsingFallback()) {
+      this.logger.warn(
+        `No active main server was found via UDP discovery; using fallback ${baseUrl}`,
       );
     }
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
