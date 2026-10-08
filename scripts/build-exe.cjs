@@ -44,8 +44,11 @@ async function main() {
 
   const typescript = resolvePackageRoot(client, 'typescript');
   const vite = resolvePackageRoot(client, 'vite');
-  // The Nest CLI intentionally has no package main export.
-  const nestCli = fs.realpathSync(path.join(server, 'node_modules', '@nestjs', 'cli'));
+  // The Nest CLI intentionally has no package main export, so resolve its package.json.
+  // Normal resolution works with both pnpm layouts (isolated symlinks and node-linker=hoisted).
+  const nestCli = fs.realpathSync(
+    path.dirname(require.resolve('@nestjs/cli/package.json', { paths: [server] })),
+  );
   run([path.join(typescript, 'bin', 'tsc'), '-b'], client);
   run([path.join(vite, 'bin', 'vite.js'), 'build'], client);
   run([path.join(nestCli, 'bin', 'nest.js'), 'build'], server);
