@@ -46,6 +46,7 @@ import {
 import type { ColorPrediction, SkippyMetricsWithImageResponse } from "@/lib/types/otdr"
 import Otdr from "@/lib/repositories/otdr.repository"
 import Notify from "@/lib/notification"
+import { compressForUpload } from "@/lib/image-compression"
 import { cn } from "@/lib/utils"
 import { OK_NOT_OK, type BatchCablePhysicalParametersPayload } from "@/lib/types/cable"
 import { useSearchParams } from "react-router-dom"
@@ -237,10 +238,15 @@ export default function QaDashboard() {
     setLastTestedFiberId(matchedRow?.id ?? null)
 
     // Developer-mode runs without an attached image never saved one ("N/A ..."), so only warn for real captures.
+    // The upload copy is compressed to under 1 MB; the full-size original stays in otdr-runs/.
     const capturedImage = !result.savedFiles.image.startsWith("N/A")
-    const image = capturedImage ? await Otdr.getRunImage(result.runId).catch(() => null) : null
+    const image = capturedImage
+      ? await Otdr.getRunImage(result.runId)
+          .then(compressForUpload)
+          .catch(() => null)
+      : null
     if (capturedImage && !image) {
-      Notify.warning("Fiber photo could not be loaded; the test is saved without it.")
+      Notify.warning("Fiber photo could not be prepared; the test is saved without it.")
     }
 
     await saveBatchFiberTestingData.mutateAsync({
@@ -364,17 +370,23 @@ export default function QaDashboard() {
     if (checkIfAllSelected) {
       // Selections can change faster than sessions are created; only the latest selection's session may win.
       const requestId = ++sessionLinkRequestRef.current
-      const data = await saveBatchCableProfileLink({
-        batch_id: parseInt(batch),
-        otdr_device_id: parseInt(otdr),
-        cable_profile_id: parseInt(cableProfile),
-        customer_id: selectedBatch?.customer.id || 0,
-        stage_id: parseInt(sfgStage),
-        drum_number: "D-001",
-        fiber_type: "Single Mode",
-      })
-      if (requestId === sessionLinkRequestRef.current) {
-        setBatchCableProfileLinkId(data.id)
+      try {
+        const data = await saveBatchCableProfileLink({
+          batch_id: parseInt(batch),
+          otdr_device_id: parseInt(otdr),
+          cable_profile_id: parseInt(cableProfile),
+          customer_id: selectedBatch?.customer.id || 0,
+          stage_id: parseInt(sfgStage),
+          drum_number: "D-001",
+          fiber_type: "Single Mode",
+        })
+        if (requestId === sessionLinkRequestRef.current) {
+          setBatchCableProfileLinkId(data.id)
+        }
+      } catch (error) {
+        if (requestId === sessionLinkRequestRef.current) {
+          Notify.error((error as { message?: string | string[] })?.message ?? "Could not open the testing session.")
+        }
       }
     }
   }
@@ -425,10 +437,13 @@ export default function QaDashboard() {
     return null
   }
 
-  // automatically save link between selected batch, cable profile, sfg stage and otdr device when any of them changes and all are selected
+  // automatically save link between selected batch, cable profile, sfg stage and otdr device when any of them changes and all are selected.
+  // Waits for the batch and profile lists: on a refresh the selections come straight from the URL, before the main
+  // server has been discovered (the lists only load once it has), and customer_id is read from the loaded batch.
+  const sessionLinkReady = !!checkIfAllSelected && !!selectedBatch && !!selectedCableProfile
   useEffect(() => {
-    handleSaveBatchCableProfileLink()
-  }, [otdr, sfgStage, batch, cableProfile])
+    if (sessionLinkReady) void handleSaveBatchCableProfileLink()
+  }, [otdr, sfgStage, batch, cableProfile, sessionLinkReady])
 
   // clear filters when batch changes
   useEffect(() => {

@@ -33,7 +33,8 @@ interface ConnectionConfig {
 }
 
 /** `${Date.now()}-${randomUUID()}` */
-const RUN_ID_PATTERN = /^\d+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const RUN_ID_PATTERN =
+  /^\d+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface UploadedImageFile {
   originalname: string;
