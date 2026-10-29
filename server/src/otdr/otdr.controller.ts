@@ -2,7 +2,9 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
+  StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
@@ -26,6 +28,13 @@ export class OtdrController {
   @Get('connection/status')
   status() {
     return this.otdrService.getConnectionStatus();
+  }
+
+  /** Photo saved for a metrics run; the client forwards it with the fiber test. */
+  @Get('runs/:runId/image')
+  async getRunImage(@Param('runId') runId: string) {
+    const { buffer, mimeType } = await this.otdrService.getRunImage(runId);
+    return new StreamableFile(buffer, { type: mimeType });
   }
 
   @Post('commands/skippy')

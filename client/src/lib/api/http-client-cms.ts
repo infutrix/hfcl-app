@@ -15,12 +15,11 @@ apiCms.interceptors.request.use((config) => {
 
   const isFormDataPayload = typeof FormData !== "undefined" && config.data instanceof FormData
 
-  if (isFormDataPayload) {
-    return config
-  }
-
   config.headers = config.headers ?? {}
-  config.headers["Content-Type"] ??= "application/json"
+  // FormData needs the browser-generated multipart boundary, so leave Content-Type unset for it.
+  if (!isFormDataPayload) {
+    config.headers["Content-Type"] ??= "application/json"
+  }
   try {
     const token = localStorage.getItem("hfcl_access_token")
     if (token) {

@@ -3,14 +3,15 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
   OnModuleDestroy,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { CreateConnectionDto } from './dto/create-connection.dto';
 import { SendSkippyCommandDto } from './dto/send-skippy-command.dto';
 import { Socket } from 'net';
-import { mkdir, writeFile } from 'fs/promises';
-import { extname, join } from 'path';
+import { mkdir, readFile, writeFile } from 'fs/promises';
+import { basename, extname, join } from 'path';
 import { randomUUID } from 'crypto';
 import {
   CableType,
@@ -30,6 +31,9 @@ interface ConnectionConfig {
   connectTimeoutMs: number;
   commandTimeoutMs: number;
 }
+
+/** `${Date.now()}-${randomUUID()}` */
+const RUN_ID_PATTERN = /^\d+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 interface UploadedImageFile {
   originalname: string;
@@ -516,6 +520,45 @@ export class OtdrService implements OnModuleDestroy {
         record: join('public', 'otdr-runs', recordFileName),
       },
     };
+  }
+
+  /**
+   * The photo saved for a metrics run, so the client can attach it to the fiber
+   * test it submits to the main server. Developer-mode runs without an attached
+   * image have none (404).
+   */
+  async getRunImage(
+    runId: string,
+  ): Promise<{ buffer: Buffer; mimeType: string }> {
+    if (!RUN_ID_PATTERN.test(runId)) {
+      throw new BadRequestException('Invalid run id.');
+    }
+
+    let record: { image?: { fileName?: unknown; mimeType?: unknown } };
+    try {
+      record = JSON.parse(
+        await readFile(join(this.runStorageDir, `${runId}.json`), 'utf8'),
+      ) as typeof record;
+    } catch {
+      throw new NotFoundException('No image was saved for this run.');
+    }
+
+    const fileName = record.image?.fileName;
+    if (typeof fileName !== 'string' || basename(fileName) !== fileName) {
+      throw new NotFoundException('No image was saved for this run.');
+    }
+
+    try {
+      return {
+        buffer: await readFile(join(this.runStorageDir, fileName)),
+        mimeType:
+          typeof record.image?.mimeType === 'string'
+            ? record.image.mimeType
+            : 'application/octet-stream',
+      };
+    } catch {
+      throw new NotFoundException('Image file for this run is missing.');
+    }
   }
 
   private async fetchCapturedImage(): Promise<UploadedImageFile> {

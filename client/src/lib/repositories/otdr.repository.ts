@@ -49,6 +49,11 @@ export default class Otdr {
     return await api.post("/otdr/commands/skippy/metrics-with-image/upload", formData)
   }
 
+  /** Photo the local server saved for a metrics run (404 when the run kept none). */
+  static async getRunImage(runId: string): Promise<Blob> {
+    return await api.get(`/otdr/runs/${encodeURIComponent(runId)}/image`, { responseType: "blob" })
+  }
+
   static async runSkippyLengthAndIor(data: RunSkippyLengthAndIorInput): Promise<SkippyLengthAndIorResponse> {
     return await api.post("/otdr/commands/skippy/length-and-ior", data)
   }

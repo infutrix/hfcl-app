@@ -48,8 +48,16 @@ export default class Cable {
   }
 
   static async saveBatchFiberTestingData(data: SaveBatchFiberTestingDataPayload): Promise<void> {
-    const { fibre_id, ...payload } = data
-    await apiCms.put(`/batch-fiber-testing/${fibre_id}`, payload)
+    const { fibre_id, image, ...payload } = data
+    if (!image) {
+      await apiCms.put(`/batch-fiber-testing/${fibre_id}`, payload)
+      return
+    }
+    const formData = new FormData()
+    formData.append("fiber_wavelengths", JSON.stringify(payload.fiber_wavelengths))
+    formData.append("ai_response", payload.ai_response)
+    formData.append("image", image, `fiber-${fibre_id}.${image.type.split("/")[1] || "jpg"}`)
+    await apiCms.put(`/batch-fiber-testing/${fibre_id}`, formData)
   }
 
   static async saveBatchFiberLengthAndIor(data: SaveBatchFiberLengthAndIorPayload): Promise<void> {

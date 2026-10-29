@@ -11,4 +11,7 @@ export default class Notify {
   static async success(message: string) {
     toast.success(message)
   }
+  static async warning(message: string) {
+    toast.warning(message)
+  }
 }

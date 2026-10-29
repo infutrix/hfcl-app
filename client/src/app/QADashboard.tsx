@@ -44,6 +44,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import type { ColorPrediction, SkippyMetricsWithImageResponse } from "@/lib/types/otdr"
+import Otdr from "@/lib/repositories/otdr.repository"
+import Notify from "@/lib/notification"
 import { cn } from "@/lib/utils"
 import { OK_NOT_OK, type BatchCablePhysicalParametersPayload } from "@/lib/types/cable"
 import { useSearchParams } from "react-router-dom"
@@ -233,8 +235,16 @@ export default function QaDashboard() {
 
     setLastTestedFiberId(matchedRow?.id ?? null)
 
+    // Developer-mode runs without an attached image never saved one ("N/A ..."), so only warn for real captures.
+    const capturedImage = !result.savedFiles.image.startsWith("N/A")
+    const image = capturedImage ? await Otdr.getRunImage(result.runId).catch(() => null) : null
+    if (capturedImage && !image) {
+      Notify.warning("Fiber photo could not be loaded; the test is saved without it.")
+    }
+
     await saveBatchFiberTestingData.mutateAsync({
       fibre_id: matchedRow?.id || 0,
+      image,
       fiber_wavelengths: [
         ...(result.loss[1310] !== undefined
           ? [

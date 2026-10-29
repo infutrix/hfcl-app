@@ -401,6 +401,8 @@ export type SaveBatchFiberTestingDataPayload = {
   fiber_wavelengths: FiberWavelength[]
   ai_response: string
   fibre_id: number
+  /** Fiber photo the AI judged; stored with this test on the main server. */
+  image?: Blob | null
 }
 
 export type SaveBatchFiberLengthAndIorPayload = {
