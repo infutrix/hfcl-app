@@ -72,6 +72,7 @@ export default function QaDashboard() {
   const [devTestImage, setDevTestImage] = useState<File | null>(null)
   const [lastTestedFiberId, setLastTestedFiberId] = useState<number | null>(null)
   const lastTestedRowRef = useRef<HTMLTableRowElement | null>(null)
+  const sessionLinkRequestRef = useRef(0)
   const [pendingFiberTest, setPendingFiberTest] = useState<{
     result: SkippyMetricsWithImageResponse
     currentAttribute1?: string
@@ -361,6 +362,8 @@ export default function QaDashboard() {
 
   async function handleSaveBatchCableProfileLink() {
     if (checkIfAllSelected) {
+      // Selections can change faster than sessions are created; only the latest selection's session may win.
+      const requestId = ++sessionLinkRequestRef.current
       const data = await saveBatchCableProfileLink({
         batch_id: parseInt(batch),
         otdr_device_id: parseInt(otdr),
@@ -370,7 +373,9 @@ export default function QaDashboard() {
         drum_number: "D-001",
         fiber_type: "Single Mode",
       })
-      setBatchCableProfileLinkId(data.id)
+      if (requestId === sessionLinkRequestRef.current) {
+        setBatchCableProfileLinkId(data.id)
+      }
     }
   }
 
