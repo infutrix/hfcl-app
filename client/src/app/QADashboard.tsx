@@ -50,6 +50,7 @@ import { compressForUpload } from "@/lib/image-compression"
 import { cn } from "@/lib/utils"
 import { OK_NOT_OK, type BatchCablePhysicalParametersPayload } from "@/lib/types/cable"
 import { useSearchParams } from "react-router-dom"
+import { FiberTypeSelect } from "@/components/fiber-type-select"
 
 export default function QaDashboard() {
   // states
@@ -58,6 +59,7 @@ export default function QaDashboard() {
   const params_sfg_stage_id = searchParams.get("sfg_stage_id")
   const params_profile_id = searchParams.get("profile_id")
   const params_otdr_id = searchParams.get("otdr_id")
+  const params_fiber_type = searchParams.get("fiber_type")
 
   const [cablePhysicalParameters, setCablePhysicalParameters] =
     useState<Partial<BatchCablePhysicalParametersPayload> | null>(null)
@@ -65,6 +67,7 @@ export default function QaDashboard() {
   const [sfgStage, setSfgStage] = useState(params_sfg_stage_id || "")
   const [batch, setBatch] = useState(params_batch_id || "")
   const [cableProfile, setCableProfile] = useState(params_profile_id || "")
+  const [fiberType, setFiberType] = useState(params_fiber_type || "")
   const [batchCableProfileLinkId, setBatchCableProfileLinkId] = useState<number | undefined>(undefined)
   const [selectedFilters, setSelectedFilters] = useState<{
     attribute1_value?: string
@@ -326,8 +329,8 @@ export default function QaDashboard() {
   }, [otdrStatus])
 
   const checkIfAllSelected = useMemo(
-    () => otdr && sfgStage && batch && cableProfile,
-    [otdr, sfgStage, batch, cableProfile]
+    () => otdr && sfgStage && batch && cableProfile && fiberType,
+    [otdr, sfgStage, batch, cableProfile, fiberType]
   )
 
   const attribute1HeaderLabel =
@@ -378,7 +381,7 @@ export default function QaDashboard() {
           customer_id: selectedBatch?.customer.id || 0,
           stage_id: parseInt(sfgStage),
           drum_number: "D-001",
-          fiber_type: "Single Mode",
+          fiber_type: fiberType,
         })
         if (requestId === sessionLinkRequestRef.current) {
           setBatchCableProfileLinkId(data.id)
@@ -443,7 +446,7 @@ export default function QaDashboard() {
   const sessionLinkReady = !!checkIfAllSelected && !!selectedBatch && !!selectedCableProfile
   useEffect(() => {
     if (sessionLinkReady) void handleSaveBatchCableProfileLink()
-  }, [otdr, sfgStage, batch, cableProfile, sessionLinkReady])
+  }, [otdr, sfgStage, batch, cableProfile, fiberType, sessionLinkReady])
 
   // clear filters when batch changes
   useEffect(() => {
@@ -522,8 +525,9 @@ export default function QaDashboard() {
       sfg_stage_id: sfgStage,
       profile_id: cableProfile,
       otdr_id: otdr,
+      fiber_type: fiberType,
     })
-  }, [otdr, sfgStage, cableProfile, batch])
+  }, [otdr, sfgStage, cableProfile, batch, fiberType])
 
   return (
     <div className="grid grid-cols-12 gap-2 px-2 py-4">
@@ -653,6 +657,12 @@ export default function QaDashboard() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-10 items-center gap-2">
+              <label className="col-span-2 font-medium text-foreground">Fiber Type</label>
+              <div className="col-span-8">
+                <FiberTypeSelect value={fiberType} onChange={setFiberType} />
               </div>
             </div>
             {/* <div className="grid grid-cols-10 items-center gap-2">
